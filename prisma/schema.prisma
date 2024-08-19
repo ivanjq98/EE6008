@@ -34,9 +34,9 @@ model Faculty {
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
   user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  Grade     Grade[]
   programme Programme[]
   Project   Project[]
-  Grade     Grade[]
 }
 
 model Student {
@@ -46,14 +46,13 @@ model Student {
   createdAt           DateTime       @default(now())
   updatedAt           DateTime       @updatedAt
   matriculationNumber String         @unique
+  Grade               Grade[]
+  RevieweePeerReviews PeerReview[]   @relation("RevieweePeerReviews")
+  ReviewerPeerReviews PeerReview[]   @relation("ReviewerPeerReviews")
   plans               ProjectPlan[]
   registrations       Registration[]
   project             Project?       @relation(fields: [projectId], references: [id])
   user                User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  Grade               Grade[]
-
-  ReviewerPeerReviews PeerReview[] @relation(name: "ReviewerPeerReviews")
-  RevieweePeerReviews PeerReview[] @relation(name: "RevieweePeerReviews")
 }
 
 model Programme {
@@ -83,14 +82,14 @@ model Project {
   reviewMessage String?
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
+  Grade         Grade[]
+  PeerReview    PeerReview[]
   faculty       Faculty        @relation(fields: [facultyId], references: [id], onDelete: Cascade)
   programme     Programme      @relation(fields: [programmeId], references: [id])
+  venue         Venue?         @relation(fields: [venueId], references: [id])
   projectPlans  ProjectPlan[]
   registrations Registration[]
   students      Student[]
-  venue         Venue?         @relation(fields: [venueId], references: [id], onDelete: SetNull)
-  Grade         Grade[]
-  PeerReview    PeerReview[]
 }
 
 model ProjectPlan {
@@ -127,10 +126,10 @@ model Semester {
   projectApplicationsLimit Int
   minimumGroupSize         Int
   maximumGroupSize         Int
+  SemesterGradeType        GradeType[]
   programmes               Programme[]
   timeline                 SemesterTimeline?
   venues                   Venue[]
-  SemesterGradeType        GradeType[]
 }
 
 model SemesterTimeline {
@@ -157,27 +156,26 @@ model Venue {
   location   String
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
-  projects   Project[]
   semesterId String
+  projects   Project[]
   semester   Semester  @relation(fields: [semesterId], references: [id], onDelete: Cascade)
 
   @@unique([name, semesterId, location])
 }
 
 model Grade {
-  id                  String   @id @default(uuid())
+  id                  String    @id @default(uuid())
   projectId           String
   studentId           String
   facultyId           String
   score               Float?
   semesterGradeTypeId String
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
-
-  semesterGradeType GradeType @relation(fields: [semesterGradeTypeId], references: [id])
-  project           Project   @relation(fields: [projectId], references: [id])
-  student           Student   @relation(fields: [studentId], references: [id])
-  faculty           Faculty   @relation(fields: [facultyId], references: [id])
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  faculty             Faculty   @relation(fields: [facultyId], references: [id])
+  project             Project   @relation(fields: [projectId], references: [id])
+  semesterGradeType   GradeType @relation(fields: [semesterGradeTypeId], references: [id])
+  student             Student   @relation(fields: [studentId], references: [id])
 
   @@unique([studentId, projectId, facultyId, semesterGradeTypeId])
 }
@@ -188,8 +186,8 @@ model GradeType {
   semesterId String
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
-  semester   Semester @relation(fields: [semesterId], references: [id], onDelete: Cascade)
   Grade      Grade[]
+  semester   Semester @relation(fields: [semesterId], references: [id], onDelete: Cascade)
 
   @@unique([name, semesterId])
 }
@@ -202,12 +200,10 @@ model PeerReview {
   rank       Int
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
-
-  project  Project @relation(fields: [projectId], references: [id])
-  reviewer Student @relation(name: "ReviewerPeerReviews", fields: [reviewerId], references: [id])
-  reviewee Student @relation(name: "RevieweePeerReviews", fields: [revieweeId], references: [id])
-
-  studentId String?
+  studentId  String?
+  project    Project  @relation(fields: [projectId], references: [id])
+  reviewee   Student  @relation("RevieweePeerReviews", fields: [revieweeId], references: [id])
+  reviewer   Student  @relation("ReviewerPeerReviews", fields: [reviewerId], references: [id])
 
   @@unique([projectId, revieweeId, reviewerId])
 }

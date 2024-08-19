@@ -73,6 +73,7 @@ async function projectSeed() {
     console.error('No active semester found')
     return null
   }
+  console.log('Semester Data:', semesterData)
 
   const activeSemesterId = semesterData.id
 

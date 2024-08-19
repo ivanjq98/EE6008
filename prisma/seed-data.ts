@@ -1,8 +1,8 @@
 export const studentUsersData = [
   {
-    email: 'john0041@e.ntu.edu.sg',
-    fullName: 'John Nicholas Suharjono',
-    matriculationNumber: 'U2020832K'
+    email: 'ITAN025@e.ntu.edu.sg',
+    fullName: 'Ivan Tan Kah Keng',
+    matriculationNumber: 'U2123310H'
   },
   {
     email: 'jameshernandez@e.ntu.edu.sg',
