@@ -1,8 +1,6 @@
 import { hash } from 'bcrypt'
-
 import { faker } from '@faker-js/faker'
 import { PrismaClient, ProjectStatus, UserRole } from '@prisma/client'
-
 import { facultyUsersData, studentUsersData } from './seed-data'
 
 const prisma = new PrismaClient()
@@ -10,7 +8,7 @@ const prisma = new PrismaClient()
 async function userSeed() {
   const password: string = await hash('test', 12)
 
-  // create student user
+  // Create student users
   await prisma.$transaction(
     studentUsersData.map((student) =>
       prisma.student.create({
@@ -29,7 +27,7 @@ async function userSeed() {
     )
   )
 
-  // create faculty users
+  // Create faculty users
   await prisma.$transaction(
     facultyUsersData.map((faculty) =>
       prisma.faculty.create({
@@ -47,7 +45,7 @@ async function userSeed() {
     )
   )
 
-  // create admin users
+  // Create admin users
   await prisma.admin.create({
     data: {
       user: {
@@ -71,7 +69,7 @@ async function projectSeed() {
 
   if (!semesterData) {
     console.error('No active semester found')
-    return null
+    return
   }
   console.log('Semester Data:', semesterData)
 
@@ -82,7 +80,6 @@ async function projectSeed() {
     where: {
       role: UserRole.FACULTY
     },
-
     select: {
       faculty: {
         select: {
@@ -92,9 +89,11 @@ async function projectSeed() {
     }
   })
 
-  const facultyUsersId = facultyUsers.map((user) => user.faculty?.id)
+  const facultyUsersId = facultyUsers.map((user) => user.faculty?.id).filter((id): id is string => id !== undefined)
 
-  // get all existing programme id for the active semester
+  console.log('Faculty User IDs:', facultyUsersId)
+
+  // Get all existing programme id for the active semester
   const programmes = await prisma.programme.findMany({
     where: {
       semesterId: activeSemesterId
@@ -106,7 +105,8 @@ async function projectSeed() {
   })
 
   if (!programmes) {
-    return null
+    console.error('No programmes found')
+    return
   }
 
   const venueData = await prisma.venue.findMany({
@@ -118,21 +118,20 @@ async function projectSeed() {
     }
   })
 
-  const venueDataId = venueData.filter((venue) => venue.id)
+  const venueDataId = venueData.map((venue) => venue.id)
+
+  console.log('Venue IDs:', venueDataId)
 
   const getRandomNumber = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min
 
-  const generateRandomProjectData = (
-    facultyUsers: (string | undefined)[],
-    programmes: { id: string; programmeCode: string }[]
-  ) => {
+  const generateRandomProjectData = (facultyUsers: string[], programmes: { id: string; programmeCode: string }[]) => {
     // Generate random indices within the bounds of the arrays
     const randomFacultyIndex = getRandomNumber(0, facultyUsers.length - 1)
     const randomProgrammeIndex = getRandomNumber(0, programmes.length - 1)
     const randomVenueIndex = getRandomNumber(0, venueDataId.length - 1)
 
     // Select random faculty and programme using the generated indices
-    const randomFaculty = facultyUsersId[randomFacultyIndex] as string
+    const randomFaculty = facultyUsers[randomFacultyIndex]
     const randomProgramme = programmes[randomProgrammeIndex]
     const randomVenue = venueDataId[randomVenueIndex]
 
@@ -141,56 +140,50 @@ async function projectSeed() {
       description: faker.lorem.paragraph(7),
       programmeId: randomProgramme.id,
       programmeCode: randomProgramme.programmeCode,
-      venueId: randomVenue.id,
+      venueId: randomVenue,
       semesterId: activeSemesterId,
-      semesterName: semesterData.name,
+      semesterName: semesterData.name || '',
       facultyId: randomFaculty
     }
   }
 
-  // generate projects data
+  // Generate projects data
   const projectData = []
   for (let i = 0; i < 30; i++) {
     projectData.push(generateRandomProjectData(facultyUsersId, programmes))
   }
 
   // Use Promise.all to create or update all users concurrently
-  const projectPromises = projectData.map((data) => {
-    return async () => {
-      const { description, programmeId, semesterId, title, venueId, semesterName, programmeCode, facultyId } = data
-      const projectsUnderThisProgram = await prisma.project.findMany({
-        where: {
-          programmeId
-        },
-        orderBy: {
-          createdAt: 'desc'
-        }
-      })
+  const projectPromises = projectData.map((data) => async () => {
+    const { description, programmeId, semesterId, title, venueId, semesterName, programmeCode, facultyId } = data
 
-      const latestProjectCode = projectsUnderThisProgram[0]?.projectCode?.slice(1, 4)
-      const nextId = latestProjectCode === undefined ? '000' : Number(latestProjectCode) + 1
-      const projectCode = `${programmeCode}${nextId.toString().padStart(3, '0')}-${semesterName.slice(
-        0,
-        2
-      )}${semesterName.slice(-1)}`
+    const projectsUnderThisProgram = await prisma.project.findMany({
+      where: {
+        programmeId
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    })
 
-      await prisma.project.create({
-        data: {
-          title,
-          description,
-          status: ProjectStatus.APPROVED,
-          projectCode,
-          venueId,
-          facultyId,
-          programmeId
-        }
-      })
-    }
+    const latestProjectCode = projectsUnderThisProgram[0]?.projectCode?.slice(1, 4)
+    const nextId = latestProjectCode === undefined ? '000' : (Number(latestProjectCode) + 1).toString()
+    const projectCode = `${programmeCode}${nextId.padStart(3, '0')}-${semesterName.slice(0, 2)}${semesterName.slice(-1)}`
+
+    await prisma.project.create({
+      data: {
+        title,
+        description,
+        status: ProjectStatus.APPROVED,
+        projectCode,
+        venueId,
+        facultyId,
+        programmeId
+      }
+    })
   })
 
-  for (const promiseFunction of projectPromises) {
-    await promiseFunction()
-  }
+  await Promise.all(projectPromises.map((promiseFunction) => promiseFunction()))
 }
 
 async function projectRegistrationSeed() {
@@ -221,14 +214,13 @@ async function projectRegistrationSeed() {
     priority: number
   }[] = []
 
-  for (let i = 0; i < students.length; i++) {
-    const student = students[i]
+  for (const student of students) {
     const studentProjects = []
     const numberOfProjects = getRandomNumber(3, 5)
-    const set = new Set()
+    const set = new Set<number>()
     for (let j = 0; j < numberOfProjects; j++) {
       let randomProjectIndex = getRandomNumber(0, projects.length - 1)
-      if (set.has(randomProjectIndex)) {
+      while (set.has(randomProjectIndex)) {
         randomProjectIndex = getRandomNumber(0, projects.length - 1)
       }
       set.add(randomProjectIndex)
@@ -248,7 +240,8 @@ async function projectRegistrationSeed() {
   })
 }
 
-projectSeed()
+userSeed()
+  .then(() => projectSeed())
   .then(() => projectRegistrationSeed())
   .then(() => prisma.$disconnect())
   .catch(async (e) => {
