@@ -18,6 +18,14 @@ export const studentConfig: StudentConfig = {
     {
       title: 'Peer Review',
       href: '/student/peer-review'
+    },
+    {
+      title: 'Milestones',
+      href: '/student/milestones'
+    },
+    {
+      title: 'Timeline',
+      href: '/student/timeline'
     }
   ]
 }
@@ -90,9 +98,25 @@ export const facultyConfig: FacultyConfig = {
       type: 'link'
     },
     {
+      title: 'Assessment',
+      type: 'header'
+    },
+    {
       title: 'Mark',
       href: '/faculty/mark',
       icon: 'mark',
+      type: 'link'
+    },
+    {
+      title: 'Summary',
+      href: '/faculty/summary',
+      icon: 'post',
+      type: 'link'
+    },
+    {
+      title: 'Guidelines',
+      href: '/faculty/guidelines',
+      icon: 'help',
       type: 'link'
     }
   ]

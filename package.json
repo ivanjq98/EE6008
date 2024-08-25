@@ -46,17 +46,22 @@
     "next-themes": "^0.3.0",
     "pg": "^8.12.0",
     "react": "^18.2.0",
+    "react-datepicker": "^7.3.0",
     "react-day-picker": "^8.10.0",
     "react-dom": "^18.2.0",
+    "react-gantt-chart": "^0.3.0-rc.11",
     "react-hook-form": "^7.51.3",
     "recharts": "^2.12.5",
+    "redux": "^5.0.1",
     "sonner": "^1.4.41",
     "tailwind-merge": "^2.2.2",
     "tailwindcss-animate": "^1.0.7",
     "usehooks-ts": "^3.1.0",
     "vaul": "^0.9.0",
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.1/xlsx-0.20.1.tgz",
-    "zod": "^3.22.4"
+    "yup": "^1.4.0",
+    "zod": "^3.22.4",
+    "zustand": "^4.5.5"
   },
   "devDependencies": {
     "@faker-js/faker": "^8.4.1",

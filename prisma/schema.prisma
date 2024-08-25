@@ -37,6 +37,7 @@ model Faculty {
   Grade     Grade[]
   programme Programme[]
   Project   Project[]
+  Remarks   Remarks[]
 }
 
 model Student {
@@ -53,6 +54,7 @@ model Student {
   registrations       Registration[]
   project             Project?       @relation(fields: [projectId], references: [id])
   user                User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  Milestone           Milestone[]
 }
 
 model Programme {
@@ -90,6 +92,9 @@ model Project {
   projectPlans  ProjectPlan[]
   registrations Registration[]
   students      Student[]
+  // Added
+  Milestone     Milestone[]
+  Remarks       Remarks[]
 }
 
 model ProjectPlan {
@@ -145,6 +150,7 @@ model SemesterTimeline {
   facultyMarkEntryEnd            DateTime
   studentPeerReviewStart         DateTime
   studentPeerReviewEnd           DateTime
+  studentResultReleased          DateTime // Student to know their results
   createdAt                      DateTime @default(now())
   updatedAt                      DateTime @updatedAt
   semester                       Semester @relation(fields: [semesterId], references: [id], onDelete: Cascade)
@@ -169,6 +175,8 @@ model Grade {
   studentId           String
   facultyId           String
   score               Float?
+  weightage           Float? // ensure that the total components tally up to 100%
+  finalscore          Float? // Show the raw score after tabulating the score for each components
   semesterGradeTypeId String
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
@@ -219,4 +227,36 @@ enum ProjectStatus {
   APPROVED
   REJECTED
   COMPLETED
+}
+
+enum MilestoneStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+}
+
+model Milestone {
+  id        String          @id @default(uuid())
+  createdAt DateTime        @default(now())
+  startAt   DateTime
+  endAt     DateTime
+  objective String
+  comments  String?
+  status    MilestoneStatus
+  studentId String
+  student   Student         @relation(fields: [studentId], references: [id])
+  projectId String
+  project   Project         @relation(fields: [projectId], references: [id])
+  Remarks   Remarks[]
+}
+
+model Remarks {
+  id          String    @id @default(uuid())
+  reviews     String
+  facultyId   String
+  faculty     Faculty   @relation(fields: [facultyId], references: [id])
+  milestoneId String
+  milestone   Milestone @relation(fields: [milestoneId], references: [id])
+  projectId   String?
+  Project     Project?  @relation(fields: [projectId], references: [id])
 }

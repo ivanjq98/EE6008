@@ -43,3 +43,9 @@ export type SidebarNavItem =
       title: string
       type: 'header'
     }
+
+export enum MilestoneStatus {
+  PENDING = 'PENDING',
+  IN_PROGRESS = 'IN_PROGRESS',
+  COMPLETED = 'COMPLETED'
+}

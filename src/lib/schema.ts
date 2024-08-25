@@ -24,6 +24,9 @@ export const EditSemesterDataFormSchema = z.object({
   peerReview: z.object({
     from: z.date(),
     to: z.date()
+  }),
+  markRelease: z.object({
+    date: z.date()
   })
 })
 const semesterNameRegex = /^[0-9]{2}[S][0-9]{1}$/
@@ -54,6 +57,9 @@ export const CreateSemesterDataFormSchema = z.object({
   peerReview: z.object({
     from: z.date(),
     to: z.date()
+  }),
+  markRelease: z.object({
+    date: z.date()
   }),
   programmeDetails: z
     .object({
@@ -86,6 +92,26 @@ export const AddProjectFormSchema = z.object({
   description: z.string().max(1000).min(1),
   venueId: z.string().nullable(),
   semesterId: z.string()
+})
+
+export const AddMilestoneFormSchema = z.object({
+  objective: z.string().min(2, {
+    message: 'Objective must be at least 2 characters.'
+  }),
+  description: z.string().nullable(),
+  startAt: z.date(),
+  endAt: z.date(),
+  status: z.string(),
+  projectId: z.string()
+})
+
+export const EditMilestoneFormSchema = z.object({
+  objective: z.string(),
+  description: z.string().nullable(),
+  startAt: z.date(),
+  endAt: z.date(),
+  status: z.string(),
+  projectId: z.string()
 })
 
 export const EditProjectFormSchema = z.object({
