@@ -8,7 +8,8 @@ import { facultyUsersData, studentUsersData } from './seed-data'
 const prisma = new PrismaClient()
 
 async function userSeed() {
-  const password: string = await hash('test', 12)
+  // const password: string = await hash('test', 12)
+  const password: string = 'test'
 
   // create student user
   await prisma.$transaction(

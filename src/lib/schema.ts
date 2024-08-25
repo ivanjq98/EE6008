@@ -65,7 +65,8 @@ export const CreateSemesterDataFormSchema = z.object({
     .min(1, { message: 'At least one programme is required' }),
   assessmentFormats: z
     .object({
-      name: z.string().min(1, { message: 'Assessment name is required' })
+      name: z.string().min(1, { message: 'Assessment name is required' }),
+      weightage: z.number().min(0).max(100, { message: 'Weightage must be between 0 and 100' })
     })
     .array()
     .min(1, { message: 'At least one assessment format is required' })

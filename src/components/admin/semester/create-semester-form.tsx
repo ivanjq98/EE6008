@@ -78,7 +78,8 @@ export function CreateSemesterForm({ faculties }: CreateSemesterFormProps) {
     ],
     assessmentFormats: [
       {
-        name: ''
+        name: '',
+        weightage: 0
       }
     ]
   }
@@ -90,6 +91,16 @@ export function CreateSemesterForm({ faculties }: CreateSemesterFormProps) {
   })
 
   async function onSubmit(data: z.infer<typeof CreateSemesterDataFormSchema>) {
+    console.log("xinruixgao; onSubmit")
+    // Calculate total weightage
+    const totalWeightage = data.assessmentFormats.reduce((sum, format) => sum + (format.weightage || 0), 0)
+
+    // Check if total weightage is exactly 100
+    if (totalWeightage !== 100) {
+      toast.error(`Total weightage must be exactly 100%. Current total: ${totalWeightage}%`)
+      return // Prevent form submission
+    }
+
     const result = await createSemester(data)
     if (result.status === 'ERROR') {
       toast.error(result.message)
@@ -389,6 +400,27 @@ export function CreateSemesterForm({ faculties }: CreateSemesterFormProps) {
                       )}
                     />
                   </div>
+                  <div className='md:col-span-2'>
+                    <FormField
+                      control={form.control}
+                      name={`assessmentFormats.${index}.weightage`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <Input
+                              type='number'
+                              min='0'
+                              max='100'
+                              {...field}
+                              onChange={(e) => field.onChange(e.target.valueAsNumber)}
+                              placeholder='Weightage %'
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                   <div className='md:col-span-1'>
                     <Button type='button' variant='outline' size='icon' onClick={() => removeAssessment(index)}>
                       <Trash2 className='h-4 w-4' />
@@ -403,7 +435,7 @@ export function CreateSemesterForm({ faculties }: CreateSemesterFormProps) {
                   variant='outline'
                   size='sm'
                   className='my-4'
-                  onClick={() => appendAssessment({ name: '' })}
+                  onClick={() => appendAssessment({ name: '', weightage: 0 })}
                 >
                   Add Assessment Format
                 </Button>
