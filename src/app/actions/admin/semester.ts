@@ -65,6 +65,43 @@ export async function editSemester(data: z.infer<typeof EditSemesterDataFormSche
         studentPeerReviewEnd: formData.peerReview.to
       }
     })
+    const existingGradeTypes = await prisma.gradeType.findMany({
+      where: { semesterId: formData.semesterId }
+    })
+
+    // Update grade types (assessment formats)
+    await prisma.$transaction(
+      formData.assessmentFormats.map((format) => {
+        const existingGradeType = existingGradeTypes.find((gt) => gt.name === format.name)
+        if (existingGradeType) {
+          return prisma.gradeType.update({
+            where: { id: existingGradeType.id },
+            data: {
+              name: format.name,
+              weightage: format.weightage
+            }
+          })
+        } else {
+          // If the grade type doesn't exist, create it
+          return prisma.gradeType.create({
+            data: {
+              name: format.name,
+              weightage: format.weightage,
+              semesterId: formData.semesterId
+            }
+          })
+        }
+      })
+    )
+
+    // Optionally, delete any grade types that were removed
+    const formattedGradeTypeNames = formData.assessmentFormats.map((format) => format.name)
+    await prisma.gradeType.deleteMany({
+      where: {
+        semesterId: formData.semesterId,
+        name: { notIn: formattedGradeTypeNames }
+      }
+    })
 
     return { message: `Timeline updated successfully!`, status: 'OK' }
   } catch (error) {
@@ -115,7 +152,8 @@ export async function createSemester(data: z.infer<typeof CreateSemesterDataForm
     const assessmentFormatsData = formData.assessmentFormats.map((assessmentFormat) => {
       return {
         semesterId,
-        name: assessmentFormat.name
+        name: assessmentFormat.name,
+        weightage: assessmentFormat.weightage
       }
     })
 

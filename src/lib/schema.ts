@@ -24,7 +24,17 @@ export const EditSemesterDataFormSchema = z.object({
   peerReview: z.object({
     from: z.date(),
     to: z.date()
-  })
+  }),
+  assessmentFormats: z
+    .array(
+      z.object({
+        name: z.string().min(1, 'Format name is required'),
+        weightage: z.number().min(0).max(100)
+      })
+    )
+    .refine((formats) => formats.reduce((sum, format) => sum + format.weightage, 0) === 100, {
+      message: 'Total weightage must be exactly 100%'
+    })
 })
 const semesterNameRegex = /^[0-9]{2}[S][0-9]{1}$/
 
@@ -63,12 +73,13 @@ export const CreateSemesterDataFormSchema = z.object({
     })
     .array()
     .min(1, { message: 'At least one programme is required' }),
-  assessmentFormats: z
-    .object({
-      name: z.string().min(1, { message: 'Assessment name is required' })
+  assessmentFormats: z.array(
+    z.object({
+      id: z.string().optional(),
+      name: z.string().min(1, 'Assessment name is required'),
+      weightage: z.number().min(0).max(100, 'Weightage must be between 0 and 100')
     })
-    .array()
-    .min(1, { message: 'At least one assessment format is required' })
+  )
 })
 
 export const AddProjectFormSchema = z.object({

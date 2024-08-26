@@ -78,7 +78,8 @@ export function CreateSemesterForm({ faculties }: CreateSemesterFormProps) {
     ],
     assessmentFormats: [
       {
-        name: ''
+        name: '',
+        weightage: 0
       }
     ]
   }
@@ -90,6 +91,17 @@ export function CreateSemesterForm({ faculties }: CreateSemesterFormProps) {
   })
 
   async function onSubmit(data: z.infer<typeof CreateSemesterDataFormSchema>) {
+    console.log('ivan; onSubmit')
+    console.log('Form data before submission:', data)
+    // Calculate total weightage
+    const totalWeightage = data.assessmentFormats.reduce((sum, format) => sum + (format.weightage || 0), 0)
+
+    // Check if total weightage is exactly 100
+    if (totalWeightage !== 100) {
+      toast.error(`Total weightage must be exactly 100%. Current total: ${totalWeightage}%`)
+      return // Prevent form submission
+    }
+
     const result = await createSemester(data)
     if (result.status === 'ERROR') {
       toast.error(result.message)
@@ -369,8 +381,9 @@ export function CreateSemesterForm({ faculties }: CreateSemesterFormProps) {
 
           <TabsContent value='assessment-formats'>
             <div className='space-y-4'>
-              <div className='hidden md:block'>
-                <FormLabel>Assessment Format</FormLabel>
+              <div className='hidden gap-x-4 md:grid md:grid-cols-12'>
+                <FormLabel className='md:col-span-4'>Assessment Format</FormLabel>
+                <FormLabel className='md:col-span-2'>Total Weightage (100%)</FormLabel>
               </div>
               {assessmentFields.map((field, index) => (
                 <div className='grid gap-x-4 md:grid-cols-12' key={field.id}>
@@ -383,6 +396,28 @@ export function CreateSemesterForm({ faculties }: CreateSemesterFormProps) {
                         <FormItem className='md:col-span-4'>
                           <FormControl>
                             <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <div className='md:col-span-2'>
+                    <FormField
+                      control={form.control}
+                      name={`assessmentFormats.${index}.weightage`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <Input
+                              type='number'
+                              min='0'
+                              max='100'
+                              // {...field}
+                              onChange={(e) => field.onChange(e.target.valueAsNumber)}
+                              placeholder='Weightage %'
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -403,7 +438,7 @@ export function CreateSemesterForm({ faculties }: CreateSemesterFormProps) {
                   variant='outline'
                   size='sm'
                   className='my-4'
-                  onClick={() => appendAssessment({ name: '' })}
+                  onClick={() => appendAssessment({ name: '', weightage: 0 })}
                 >
                   Add Assessment Format
                 </Button>

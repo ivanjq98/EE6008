@@ -183,6 +183,7 @@ model Grade {
 model GradeType {
   id         String   @id @default(uuid())
   name       String   @unique
+  weightage  Int      @default(0)
   semesterId String
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt

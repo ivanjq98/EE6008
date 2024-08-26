@@ -1,7 +1,8 @@
 'use client'
+import { Trash2 } from 'lucide-react'
 
 import { useRouter } from 'next/navigation'
-import { useForm } from 'react-hook-form'
+import { useForm, useFieldArray } from 'react-hook-form'
 import { toast } from 'sonner'
 import * as z from 'zod'
 
@@ -35,6 +36,15 @@ export function EditSemesterForm({
     defaultValues: defaultValues
   })
 
+  const {
+    fields: assessmentFields,
+    append: appendAssessment,
+    remove: removeAssessment
+  } = useFieldArray({
+    control: form.control,
+    name: 'assessmentFormats'
+  })
+
   async function onSubmit(data: z.infer<typeof EditSemesterDataFormSchema>) {
     const result = await editSemester(data)
     if (result.status === 'ERROR') {
@@ -53,6 +63,7 @@ export function EditSemesterForm({
           <TabsList>
             <TabsTrigger value='semester-setting'>Semester Setting</TabsTrigger>
             <TabsTrigger value='timeline-setting'>Configure Timeline</TabsTrigger>
+            <TabsTrigger value='assessment-formats'>Assessment Formats</TabsTrigger>
           </TabsList>
           <TabsContent value='semester-setting' className='max-w-2xl space-y-6'>
             <FormField
@@ -162,6 +173,66 @@ export function EditSemesterForm({
                 </FormItem>
               )}
             />
+          </TabsContent>
+          <TabsContent value='assessment-formats' className='max-w-2xl space-y-6'>
+            <div className='space-y-4'>
+              <div className='hidden gap-x-4 md:grid md:grid-cols-12'>
+                <FormLabel className='md:col-span-4'>Assessment Format</FormLabel>
+                <FormLabel className='md:col-span-2'>Total Weightage (100%)</FormLabel>
+              </div>
+              {assessmentFields.map((field, index) => (
+                <div className='grid gap-x-4 md:grid-cols-12' key={field.id}>
+                  <div className='md:col-span-4'>
+                    <FormField
+                      control={form.control}
+                      name={`assessmentFormats.${index}.name`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <Input {...field} placeholder='Format name' />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <div className='md:col-span-2'>
+                    <FormField
+                      control={form.control}
+                      name={`assessmentFormats.${index}.weightage`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <Input
+                              type='number'
+                              min='0'
+                              max='100'
+                              {...field}
+                              onChange={(e) => field.onChange(e.target.valueAsNumber)}
+                              placeholder='Weightage %'
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <div className='md:col-span-1'>
+                    <Button type='button' variant='outline' size='icon' onClick={() => removeAssessment(index)}>
+                      <Trash2 className='h-4 w-4' />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+              <Button
+                type='button'
+                variant='outline'
+                size='sm'
+                onClick={() => appendAssessment({ name: '', weightage: 0 })}
+              >
+                Add Assessment Format
+              </Button>
+            </div>
           </TabsContent>
         </Tabs>
 

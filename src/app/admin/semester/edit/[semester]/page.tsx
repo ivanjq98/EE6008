@@ -33,6 +33,12 @@ const EditTimeline = async ({ params }: { params: { semester: string } }) => {
       </div>
     )
   } else {
+    const gradeTypes = await prisma.gradeType.findMany({
+      where: {
+        semesterId: semesterId
+      }
+    })
+
     sanitizedDefaultValues = {
       minimumGroupSize: data.minimumGroupSize,
       maximumGroupSize: data.maximumGroupSize,
@@ -57,7 +63,11 @@ const EditTimeline = async ({ params }: { params: { semester: string } }) => {
       peerReview: {
         from: semesterTimelineData.studentPeerReviewStart,
         to: semesterTimelineData.studentPeerReviewEnd
-      }
+      },
+      assessmentFormats: gradeTypes.map((gradeType) => ({
+        name: gradeType.name,
+        weightage: gradeType.weightage
+      }))
     }
   }
 
