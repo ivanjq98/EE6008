@@ -62,7 +62,8 @@ export async function editSemester(data: z.infer<typeof EditSemesterDataFormSche
         facultyMarkEntryStart: formData.markEntry.from,
         facultyMarkEntryEnd: formData.markEntry.to,
         studentPeerReviewStart: formData.peerReview.from,
-        studentPeerReviewEnd: formData.peerReview.to
+        studentPeerReviewEnd: formData.peerReview.to,
+        studentResultRelease: formData.studentResultRelease
       }
     })
     const existingGradeTypes = await prisma.gradeType.findMany({
@@ -130,7 +131,8 @@ export async function createSemester(data: z.infer<typeof CreateSemesterDataForm
             facultyMarkEntryStart: formData.markEntry.from,
             facultyMarkEntryEnd: formData.markEntry.to,
             studentPeerReviewStart: formData.peerReview.from,
-            studentPeerReviewEnd: formData.peerReview.to
+            studentPeerReviewEnd: formData.peerReview.to,
+            studentResultRelease: formData.studentResultRelease
           }
         }
       }

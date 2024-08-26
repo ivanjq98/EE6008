@@ -18,6 +18,7 @@ import {
   CommandList
 } from '@/src/components/ui/command'
 import DateTimePickerFormInput from '@/src/components/ui/date-time-picker-form-input'
+import SingleDateTimeFormInput from '../../ui/single-date-picker-input'
 import {
   Form,
   FormControl,
@@ -256,6 +257,18 @@ export function CreateSemesterForm({ faculties }: CreateSemesterFormProps) {
                   <FormLabel>Peer review</FormLabel>
                   <DateTimePickerFormInput value={field.value} onChange={field.onChange} />
                   <FormDescription>Period for when students can do peer review</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name='studentResultRelease'
+              render={({ field }) => (
+                <FormItem className='flex flex-col space-y-4'>
+                  <FormLabel>Student Result Release Date</FormLabel>
+                  <SingleDateTimeFormInput value={field.value} onChange={(date) => field.onChange(date)} />
+                  <FormDescription>Date when student results will be released</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

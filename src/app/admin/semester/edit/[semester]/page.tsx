@@ -64,6 +64,7 @@ const EditTimeline = async ({ params }: { params: { semester: string } }) => {
         from: semesterTimelineData.studentPeerReviewStart,
         to: semesterTimelineData.studentPeerReviewEnd
       },
+      studentResultRelease: semesterTimelineData.studentResultRelease,
       assessmentFormats: gradeTypes.map((gradeType) => ({
         name: gradeType.name,
         weightage: gradeType.weightage

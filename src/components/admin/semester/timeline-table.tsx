@@ -67,6 +67,11 @@ export async function TimelineTable({
       title: 'Peer review',
       from: new Date(semesterTimelineData.studentPeerReviewStart),
       to: new Date(semesterTimelineData.studentPeerReviewEnd)
+    },
+    {
+      title: 'Result Release',
+      from: new Date(semesterTimelineData.studentResultRelease),
+      to: null
     }
   ]
 
@@ -87,7 +92,7 @@ export async function TimelineTable({
             <TableRow key={index}>
               <TableCell>{period.title}</TableCell>
               <TableCell>{format(period.from, 'PPP HH:mm:ss')}</TableCell>
-              <TableCell>{format(period.to, 'PPP HH:mm:ss')}</TableCell>
+              <TableCell>{period.to ? format(period.to, 'PPP HH:mm:ss') : 'N/A'}</TableCell>
             </TableRow>
           ))}
         </TableBody>

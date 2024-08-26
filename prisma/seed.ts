@@ -71,7 +71,7 @@ async function projectSeed() {
 
   if (!semesterData) {
     console.error('No active semester found')
-    return null
+    return
   }
   console.log('Semester Data:', semesterData)
 

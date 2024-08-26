@@ -22,6 +22,7 @@ import {
 import { Input } from '@/src/components/ui/input'
 import { EditSemesterDataFormSchema } from '@/src/lib/schema'
 import { zodResolver } from '@hookform/resolvers/zod'
+import SingleDateTimeFormInput from '../../ui/single-date-picker-input'
 
 export function EditSemesterForm({
   defaultValues,
@@ -169,6 +170,18 @@ export function EditSemesterForm({
                   <FormLabel>Peer review</FormLabel>
                   <DateTimePickerFormInput value={field.value} onChange={field.onChange} />
                   <FormDescription>Period for when students can do peer review</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name='studentResultRelease'
+              render={({ field }) => (
+                <FormItem className='flex flex-col space-y-4'>
+                  <FormLabel>Peer review</FormLabel>
+                  <SingleDateTimeFormInput value={field.value} onChange={field.onChange} />
+                  <FormDescription>Date when student results will be release</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
