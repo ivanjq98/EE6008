@@ -27,6 +27,21 @@ const SectionGrade = async ({ studentsData, projectId, semesterGradeTypeId }: Se
     }
   })
 
+  // Fetch the grade type information including weightage
+  const gradeType = await prisma.gradeType.findUnique({
+    where: {
+      id: semesterGradeTypeId
+    },
+    select: {
+      weightage: true
+    }
+  })
+
+  if (!gradeType) {
+    console.error('Grade type not found')
+    return null
+  }
+
   const sanitizedDefaultValue = studentsData.map((student) => {
     const studentGrade = gradesData.find((grade) => grade.studentId === student.id)
     return {
@@ -44,7 +59,11 @@ const SectionGrade = async ({ studentsData, projectId, semesterGradeTypeId }: Se
 
   return (
     <div>
-      <GradeForm defaultValues={sanitizedDefaultValue} semesterGradeTypeId={semesterGradeTypeId} />
+      <GradeForm
+        defaultValues={sanitizedDefaultValue}
+        semesterGradeTypeId={semesterGradeTypeId}
+        weightage={gradeType.weightage}
+      />
     </div>
   )
 }

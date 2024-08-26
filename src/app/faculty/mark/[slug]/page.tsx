@@ -78,7 +78,8 @@ const MarkProjectPage = async ({ params }: { params: { slug: string } }) => {
     },
     select: {
       name: true,
-      id: true
+      id: true,
+      weightage: true
     }
   })
 
@@ -90,7 +91,7 @@ const MarkProjectPage = async ({ params }: { params: { slug: string } }) => {
         <TabsList>
           {semesterGradeType.map((grade) => (
             <TabsTrigger value={grade.name} key={grade.id}>
-              {grade.name}
+              {grade.name} ({grade.weightage}%)
             </TabsTrigger>
           ))}
         </TabsList>
