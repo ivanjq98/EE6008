@@ -94,6 +94,12 @@ export const facultyConfig: FacultyConfig = {
       href: '/faculty/mark',
       icon: 'mark',
       type: 'link'
+    },
+    {
+      title: 'Student Marks Overview',
+      href: '/faculty/student-marks-overview',
+      icon: 'reviewProjects',
+      type: 'link'
     }
   ]
 }
