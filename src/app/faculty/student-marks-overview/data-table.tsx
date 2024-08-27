@@ -10,10 +10,10 @@ import {
   getSortedRowModel,
   useReactTable
 } from '@tanstack/react-table'
+import { ArrowUpDown, ChevronDown, ChevronUp } from 'lucide-react'
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/src/components/ui/table'
 import { Button } from '@/src/components/ui/button'
-import { Input } from '@/src/components/ui/input'
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
@@ -22,7 +22,6 @@ interface DataTableProps<TData, TValue> {
 
 export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([])
-  const [globalFilter, setGlobalFilter] = React.useState('')
 
   const table = useReactTable({
     data,
@@ -32,22 +31,12 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
     onSortingChange: setSorting,
     getSortedRowModel: getSortedRowModel(),
     state: {
-      sorting,
-      globalFilter
-    },
-    onGlobalFilterChange: setGlobalFilter
+      sorting
+    }
   })
 
   return (
     <div>
-      <div className='flex items-center py-4'>
-        <Input
-          placeholder='Filter all columns...'
-          value={globalFilter ?? ''}
-          onChange={(event) => setGlobalFilter(String(event.target.value))}
-          className='max-w-sm'
-        />
-      </div>
       <div className='rounded-md border'>
         <Table>
           <TableHeader>
@@ -56,7 +45,19 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
                 {headerGroup.headers.map((header) => {
                   return (
                     <TableHead key={header.id}>
-                      {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                      {header.isPlaceholder ? null : (
+                        <div
+                          className={header.column.getCanSort() ? 'flex cursor-pointer select-none items-center' : ''}
+                          onClick={header.column.getToggleSortingHandler()}
+                        >
+                          {flexRender(header.column.columnDef.header, header.getContext())}
+                          {{
+                            asc: <ChevronUp className='ml-2 h-4 w-4' />,
+                            desc: <ChevronDown className='ml-2 h-4 w-4' />
+                          }[header.column.getIsSorted() as string] ??
+                            (header.column.getCanSort() && <ArrowUpDown className='ml-2 h-4 w-4' />)}
+                        </div>
+                      )}
                     </TableHead>
                   )
                 })}

@@ -1,43 +1,89 @@
 import { Suspense } from 'react'
 import { prisma } from '@/src/lib/prisma'
-import { columns } from './columns'
-import { DataTable } from './data-table'
+import { StudentMark } from './columns'
+import { ClientDataTable } from './ClientDataTable'
 
-async function getStudentMarks() {
+async function getCurrentSemesterId() {
+  const currentSemester = await prisma.semester.findFirst({
+    where: { active: true },
+    select: { id: true }
+  })
+
+  if (!currentSemester) {
+    throw new Error('No active semester found')
+  }
+
+  return currentSemester.id
+}
+
+async function getStudentMarks(currentSemesterId: string) {
   const studentMarks = await prisma.student.findMany({
+    where: {
+      projectId: { not: null }
+    },
     include: {
       user: true,
-      project: {
+      project: true,
+      Grade: {
         include: {
-          faculty: {
+          semesterGradeType: {
             include: {
-              user: true
+              semester: true
             }
           }
+        },
+        where: {
+          semesterGradeType: {
+            semesterId: currentSemesterId
+          }
         }
-      },
-      Grade: true
+      }
     }
   })
 
-  return studentMarks.map((student) => ({
-    id: student.id,
-    name: student.user.name,
-    matriculationNumber: student.matriculationNumber,
-    projectTitle: student.project?.title || 'Not Assigned',
-    projectSupervisor: student.project?.faculty.user.name || 'N/A',
-    totalScore: student.Grade.reduce((sum, grade) => sum + (grade.score ?? 0), 0)
-  }))
+  const assessmentComponents = await prisma.gradeType.findMany({
+    where: {
+      semesterId: currentSemesterId
+    },
+    select: { name: true },
+    distinct: ['name']
+  })
+
+  const formattedData: StudentMark[] = studentMarks.map((student) => {
+    const grades = assessmentComponents.reduce(
+      (acc, component) => {
+        const grade = student.Grade.find((g) => g.semesterGradeType.name === component.name)
+        acc[component.name] = grade?.score ?? 0
+        return acc
+      },
+      {} as Record<string, number>
+    )
+
+    const totalScore = Object.values(grades).reduce((sum, score) => sum + score, 0)
+    const semester = student.Grade[0]?.semesterGradeType.semester.name || 'Unknown'
+
+    return {
+      id: student.id,
+      name: student.user.name,
+      projectTitle: student.project?.title || 'Not Assigned',
+      semester,
+      ...grades,
+      totalScore
+    }
+  })
+
+  return { formattedData, assessmentComponents: assessmentComponents.map((c) => c.name) }
 }
 
 export default async function StudentMarksOverviewPage() {
-  const studentMarks = await getStudentMarks()
+  const currentSemesterId = await getCurrentSemesterId()
+  const { formattedData, assessmentComponents } = await getStudentMarks(currentSemesterId)
 
   return (
     <div className='container mx-auto py-10'>
       <h1 className='mb-5 text-2xl font-bold'>Student Marks Overview</h1>
       <Suspense fallback={<div>Loading...</div>}>
-        <DataTable columns={columns} data={studentMarks} />
+        <ClientDataTable assessmentComponents={assessmentComponents} data={formattedData} />
       </Suspense>
     </div>
   )

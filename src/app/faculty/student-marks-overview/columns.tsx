@@ -1,44 +1,54 @@
 'use client'
 
-import { ColumnDef } from '@tanstack/react-table'
+import { ColumnDef, SortingFn } from '@tanstack/react-table'
+import { useMemo } from 'react'
 
-type StudentMark = {
+export type StudentMark = {
   id: string
   name: string
-  matriculationNumber: string
   projectTitle: string
-  projectSupervisor: string
+  // semester: string
   totalScore: number
-  gradesCount: number
+  [key: string]: string | number
 }
 
-export const columns: ColumnDef<StudentMark>[] = [
-  {
-    accessorKey: 'name',
-    header: 'Student Name'
-  },
-  {
-    accessorKey: 'matriculationNumber',
-    header: 'Matriculation Number'
-  },
-  {
-    accessorKey: 'projectTitle',
-    header: 'Project Title'
-  },
-  {
-    accessorKey: 'projectSupervisor',
-    header: 'Project Supervisor'
-  },
-  {
-    accessorKey: 'totalScore',
-    header: 'Total Score',
-    cell: ({ row }) => {
-      const score = parseFloat(row.getValue('totalScore'))
-      return <div className='text-right font-medium'>{score.toFixed(2)}</div>
-    }
-  },
-  {
-    accessorKey: 'gradesCount',
-    header: 'Number of Grades'
-  }
-]
+export function useColumns(assessmentComponents: string[]): ColumnDef<StudentMark>[] {
+  return useMemo(
+    () => [
+      {
+        accessorKey: 'name',
+        header: 'Student Name',
+        sortingFn: 'alphanumeric' as const
+      },
+      {
+        accessorKey: 'projectTitle',
+        header: 'Project Name',
+        sortingFn: 'alphanumeric' as const
+      },
+      // {
+      //   accessorKey: 'semester',
+      //   header: 'Semester',
+      //   sortingFn: 'alphanumeric' as const
+      // },
+      ...assessmentComponents.map((component) => ({
+        accessorKey: component,
+        header: component,
+        cell: ({ row }) => {
+          const score = row.getValue(component) as number
+          return <div className='text-right font-medium'>{score.toFixed(2)}</div>
+        },
+        sortingFn: 'alphanumeric' as const
+      })),
+      {
+        accessorKey: 'totalScore',
+        header: 'Final Score',
+        cell: ({ row }) => {
+          const score = row.getValue('totalScore') as number
+          return <div className='text-right font-medium'>{score.toFixed(2)}</div>
+        },
+        sortingFn: 'alphanumeric' as const
+      }
+    ],
+    [assessmentComponents]
+  )
+}
