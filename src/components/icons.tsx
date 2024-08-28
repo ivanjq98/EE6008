@@ -18,6 +18,7 @@ import {
   Image,
   Joystick,
   Laptop,
+  LineChart,
   List,
   Loader2,
   Moon,
@@ -71,5 +72,6 @@ export const Icons = {
   registration: Computer,
   upload: Upload,
   generate: Printer,
-  venue: Building
+  venue: Building,
+  statistics: LineChart
 }
