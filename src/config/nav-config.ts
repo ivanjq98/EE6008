@@ -18,6 +18,10 @@ export const studentConfig: StudentConfig = {
     {
       title: 'Peer Review',
       href: '/student/peer-review'
+    },
+    {
+      title: 'Grades',
+      href: '/student/grades'
     }
   ]
 }
