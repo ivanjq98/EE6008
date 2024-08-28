@@ -37,6 +37,7 @@ model Faculty {
   Grade     Grade[]
   programme Programme[]
   Project   Project[]
+  Remark    Remark[]
 }
 
 model Student {
@@ -53,6 +54,7 @@ model Student {
   registrations       Registration[]
   project             Project?       @relation(fields: [projectId], references: [id])
   user                User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  Milestone           Milestone[]
 }
 
 model Programme {
@@ -90,6 +92,7 @@ model Project {
   projectPlans  ProjectPlan[]
   registrations Registration[]
   students      Student[]
+  Milestone     Milestone[]
 }
 
 model ProjectPlan {
@@ -221,4 +224,42 @@ enum ProjectStatus {
   APPROVED
   REJECTED
   COMPLETED
+}
+
+model Milestone {
+  id          String          @id @default(uuid())
+  projectId   String
+  studentId   String
+  objective   String
+  description String?
+  startDate   DateTime
+  endDate     DateTime
+  status      MilestoneStatus
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  project Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  student Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  Remark  Remark[]
+
+  @@unique([projectId, studentId, startDate])
+}
+
+enum MilestoneStatus {
+  COMPLETED
+  NOT_COMPLETED
+}
+
+model Remark {
+  id          String   @id @default(uuid())
+  milestoneId String
+  facultyId   String
+  remarks     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  milestone Milestone @relation(fields: [milestoneId], references: [id], onDelete: Cascade)
+  faculty   Faculty   @relation(fields: [facultyId], references: [id], onDelete: Cascade)
+
+  @@unique([milestoneId, facultyId])
 }

@@ -98,6 +98,12 @@ export const facultyConfig: FacultyConfig = {
       type: 'link'
     },
     {
+      title: 'Remarks',
+      href: '/faculty/remarks',
+      icon: 'ellipsis',
+      type: 'link'
+    },
+    {
       title: 'Assessment',
       href: '/faculty/mark',
       icon: 'mark',

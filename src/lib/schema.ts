@@ -153,3 +153,11 @@ export const UpdateStudentGradeFormSchema = z.object({
     })
   )
 })
+
+export const milestoneSchema = z.object({
+  objective: z.string().min(1, 'Objective is required'),
+  description: z.string().optional(),
+  startDate: z.date(),
+  endDate: z.date(),
+  status: z.enum(['COMPLETED', 'NOT_COMPLETED'])
+})
