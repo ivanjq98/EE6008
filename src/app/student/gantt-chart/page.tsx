@@ -1,10 +1,9 @@
-// src/app/student/milestones/page.tsx
 import { redirect } from 'next/navigation'
 import { getServerSession } from 'next-auth'
-import { prisma } from '@/src/lib/prisma'
 import { authOptions } from '@/src/lib/auth'
+import { prisma } from '@/src/lib/prisma'
 
-export default async function MilestonesPage() {
+export default async function GanttChartRedirectPage() {
   const session = await getServerSession(authOptions)
 
   if (!session || !session.user.studentId) {
@@ -19,7 +18,7 @@ export default async function MilestonesPage() {
 
   if (student?.project) {
     // If the student has a project, redirect to that project's milestones
-    redirect(`/student/milestones/${student.project.id}`)
+    redirect(`/student/milestones/${student.project.id}/timeline`)
   } else {
     // If the student doesn't have a project, you might want to redirect to a different page
     // or show a message saying they need to join a project first

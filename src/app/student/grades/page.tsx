@@ -19,7 +19,7 @@ export default async function StudentGradesPage() {
   const studentId = session.user.id
   const { gradesBySemester, resultReleaseDate } = await getStudentGradesAndTimeline(studentId)
 
-  console.log(resultReleaseDate) // Log the resultReleaseDate here
+  console.log('xinruixgao', resultReleaseDate) // Log the resultReleaseDate here
 
   const currentDate = new Date()
 
