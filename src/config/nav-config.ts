@@ -99,7 +99,7 @@ export const facultyConfig: FacultyConfig = {
     },
     {
       title: 'Remarks',
-      href: '/faculty/remarks',
+      href: '/faculty/projects',
       icon: 'ellipsis',
       type: 'link'
     },
