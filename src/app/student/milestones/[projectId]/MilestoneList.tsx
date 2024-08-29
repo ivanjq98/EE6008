@@ -1,9 +1,21 @@
 'use client'
 
-import { Milestone } from '@prisma/client'
+import { Milestone, Remark } from '@prisma/client'
+
+interface ExtendedRemark extends Remark {
+  faculty: {
+    user: {
+      name: string
+    }
+  }
+}
+
+interface ExtendedMilestone extends Milestone {
+  Remark: ExtendedRemark[]
+}
 
 interface MilestoneListProps {
-  milestones: Milestone[]
+  milestones: ExtendedMilestone[]
 }
 
 export function MilestoneList({ milestones }: MilestoneListProps) {
@@ -21,6 +33,16 @@ export function MilestoneList({ milestones }: MilestoneListProps) {
               <p>Start Date: {new Date(milestone.startDate).toLocaleDateString()}</p>
               <p>End Date: {new Date(milestone.endDate).toLocaleDateString()}</p>
               <p>Status: {milestone.status}</p>
+              {milestone.Remark && milestone.Remark.length > 0 && (
+                <div className='mt-2'>
+                  <h4 className='font-semibold'>Faculty Remarks:</h4>
+                  {milestone.Remark.map((remark, index) => (
+                    <p key={index} className='text-gray-600'>
+                      <span className='font-medium'>{remark.faculty.user.name}:</span> {remark.remarks}
+                    </p>
+                  ))}
+                </div>
+              )}
             </li>
           ))}
         </ul>

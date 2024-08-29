@@ -33,6 +33,21 @@ const StudentMilestonePage = async ({ params }: PageProps) => {
           },
           orderBy: {
             startDate: 'asc'
+          },
+          include: {
+            Remark: {
+              include: {
+                faculty: {
+                  include: {
+                    user: {
+                      select: {
+                        name: true
+                      }
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }
