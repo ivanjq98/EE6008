@@ -24,6 +24,10 @@ export const studentConfig: StudentConfig = {
       href: '/student/milestones'
     },
     {
+      title: 'Timeline',
+      href: '/student/gantt-chart'
+    },
+    {
       title: 'Grades',
       href: '/student/grades'
     }
