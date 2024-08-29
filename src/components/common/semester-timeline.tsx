@@ -1,4 +1,4 @@
-import { format } from 'date-fns/format'
+import { format } from 'date-fns'
 
 import { TypographyH4 } from '@/src/components/typography'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/src/components/ui/table'
@@ -17,7 +17,7 @@ export async function SemesterTimeline() {
   const semesterTimelineData = semesterData?.timeline
 
   if (!semesterTimelineData) {
-    return <div>No timeline data exist for this semesteer</div>
+    return <div>No timeline data exist for this semester</div>
   }
 
   const timelineData = [
@@ -45,6 +45,11 @@ export async function SemesterTimeline() {
       title: 'Peer review',
       from: new Date(semesterTimelineData.studentPeerReviewStart),
       to: new Date(semesterTimelineData.studentPeerReviewEnd)
+    },
+    {
+      title: 'Release Result',
+      from: new Date(semesterTimelineData.studentResultRelease),
+      to: new Date(semesterTimelineData.studentResultRelease)
     }
   ]
 
@@ -64,7 +69,9 @@ export async function SemesterTimeline() {
             <TableRow key={index}>
               <TableCell>{period.title}</TableCell>
               <TableCell>{format(period.from, 'PPP HH:mm:ss')}</TableCell>
-              <TableCell>{format(period.to, 'PPP HH:mm:ss')}</TableCell>
+              <TableCell>
+                {period.from.getTime() === period.to.getTime() ? '-' : format(period.to, 'PPP HH:mm:ss')}
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>
