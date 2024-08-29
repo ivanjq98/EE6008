@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { authOptions } from '@/src/lib/auth'
 import { prisma } from '@/src/lib/prisma'
 import { FacultyRemarkForm } from '@/src/app/faculty/projects/[projectId]/students/[studentId]/milestones/FacultyRemarkForm'
+import Link from 'next/link'
 
 interface PageProps {
   params: { projectId: string; studentId: string }
@@ -49,7 +50,15 @@ export default async function FacultyStudentMilestonesPage({ params }: PageProps
   return (
     <div className='container mx-auto p-4'>
       <h1 className='mb-4 text-2xl font-bold'>Remarks for {project.title}</h1>
-      <h2 className='mb-2 text-xl font-semibold'>Student: {student.user.name}</h2>
+      <div className='mb-2 flex items-center justify-between'>
+        <h2 className='text-xl font-semibold'>Student: {student.user.name}</h2>
+        <Link
+          href={`/faculty/projects/${params.projectId}/students/${params.studentId}/timeline`}
+          className='rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600'
+        >
+          Timeline
+        </Link>
+      </div>
       {student.Milestone.map((milestone) => (
         <div key={milestone.id} className='mb-4 rounded border p-4'>
           <h3 className='font-semibold'>{milestone.objective}</h3>
