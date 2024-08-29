@@ -30,6 +30,23 @@ export async function getStudentGradesAndTimeline(studentId: string) {
     }
   })
 
+  const xinruixgao_test = await prisma.student.findUnique({
+    where: { id: 'b7c95900-5b48-4218-8b91-40a78abfbfbc' },
+    include: {
+      Grade: true
+    }
+  })
+
+  console.log('xinruixgao; xinruixgao_test', xinruixgao_test)
+
+  const gradesArray = xinruixgao_test?.Grade.map((grade) => ({
+    id: grade.id,
+    score: grade.score,
+    semesterGradeTypeId: grade.semesterGradeTypeId
+  }))
+
+  console.log('xinruixgao; gradesArray test', gradesArray)
+
   if (!student) {
     return { gradesBySemester: {}, resultReleaseDate: null }
   }
