@@ -1,6 +1,5 @@
 import { notFound, redirect } from 'next/navigation'
 import { getServerSession } from 'next-auth'
-import Link from 'next/link'
 import { prisma } from '@/src/lib/prisma'
 import { authOptions } from '@/src/lib/auth'
 import { GanttChart } from './GanttChart'
@@ -20,19 +19,20 @@ export default async function FacultyRemarksPage({ params }: PageProps) {
     const project = await prisma.project.findUnique({
       where: {
         id: params.projectId,
-        students: {
-          some: {
-            id: session.user.studentId
-          }
-        }
+        facultyId: session.user.facultyId
       },
       include: {
-        Milestone: {
+        students: {
           where: {
-            studentId: session.user.studentId
+            id: params.studentId
           },
-          orderBy: {
-            startDate: 'asc'
+          include: {
+            user: true,
+            Milestone: {
+              orderBy: {
+                startDate: 'asc'
+              }
+            }
           }
         },
         programme: {
@@ -46,10 +46,12 @@ export default async function FacultyRemarksPage({ params }: PageProps) {
         }
       }
     })
-    if (!project) {
+
+    if (!project || project.students.length === 0) {
       notFound()
     }
 
+    const student = project.students[0]
     const timeline = project.programme.semester.timeline
 
     if (!timeline) {
@@ -58,12 +60,18 @@ export default async function FacultyRemarksPage({ params }: PageProps) {
 
     return (
       <div className='container mx-auto p-4'>
-        <h1 className='mb-4 text-2xl font-bold'>{project.title} - Timeline</h1>
-        <GanttChart
-          milestones={project.Milestone}
-          startDate={timeline.studentRegistrationStart}
-          endDate={timeline.studentResultRelease}
-        />
+        <h1 className='mb-4 text-2xl font-bold'>
+          {project.title} - Timeline for {student.user.name}
+        </h1>
+        {student.Milestone.length > 0 ? (
+          <GanttChart
+            milestones={student.Milestone}
+            startDate={timeline.studentRegistrationStart}
+            endDate={timeline.studentResultRelease}
+          />
+        ) : (
+          <p>This student has not created any milestones yet.</p>
+        )}
       </div>
     )
   } catch (error) {

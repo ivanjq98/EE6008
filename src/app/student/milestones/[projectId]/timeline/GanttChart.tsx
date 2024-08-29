@@ -70,6 +70,7 @@ export function GanttChart({ milestones, startDate, endDate }: GanttChartProps) 
   return (
     <div>
       <Chart chartType='Gantt' width='100%' height='400px' data={data} options={options} />
+      <h2>Legends:</h2>
       <div className='mt-4 text-sm'>
         <div className='flex items-center'>
           <div className='mr-2 h-4 w-4' style={{ backgroundColor: completedColor }}></div>
