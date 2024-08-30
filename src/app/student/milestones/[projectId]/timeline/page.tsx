@@ -26,12 +26,14 @@ const StudentGanttChartPage = async ({ params }: PageProps) => {
         }
       },
       include: {
-        Milestone: {
-          where: {
-            studentId: session.user.studentId
-          },
-          orderBy: {
-            startDate: 'asc'
+        students: {
+          include: {
+            user: true,
+            Milestone: {
+              orderBy: {
+                startDate: 'asc'
+              }
+            }
           }
         },
         programme: {
@@ -56,11 +58,19 @@ const StudentGanttChartPage = async ({ params }: PageProps) => {
       return <div>Semester timeline not found</div>
     }
 
+    // Flatten milestones from all students
+    const allMilestones = project.students.flatMap((student) =>
+      student.Milestone.map((milestone) => ({
+        ...milestone,
+        studentName: student.user.name
+      }))
+    )
+
     return (
       <div className='container mx-auto p-4'>
         <h1 className='mb-4 text-2xl font-bold'>{project.title} - Timeline</h1>
         <GanttChart
-          milestones={project.Milestone}
+          milestones={allMilestones}
           startDate={timeline.studentRegistrationStart}
           endDate={timeline.studentResultRelease}
         />

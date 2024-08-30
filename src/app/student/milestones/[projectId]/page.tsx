@@ -19,22 +19,20 @@ const StudentMilestonePage = async ({ params }: PageProps) => {
   try {
     const project = await prisma.project.findUnique({
       where: {
-        id: params.projectId,
-        students: {
-          some: {
-            id: session.user.studentId
-          }
-        }
+        id: params.projectId
       },
       include: {
         Milestone: {
-          where: {
-            studentId: session.user.studentId
-          },
-          orderBy: {
-            startDate: 'asc'
-          },
           include: {
+            student: {
+              include: {
+                user: {
+                  select: {
+                    name: true
+                  }
+                }
+              }
+            },
             Remark: {
               include: {
                 faculty: {
@@ -48,6 +46,9 @@ const StudentMilestonePage = async ({ params }: PageProps) => {
                 }
               }
             }
+          },
+          orderBy: {
+            startDate: 'asc'
           }
         }
       }
