@@ -3,9 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("POSTGRES_URL_NON_POOLING") // uses a direct connection
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  // directUrl = env("POSTGRES_URL_NON_POOLING") // uses a direct connection
 }
 
 model User {
@@ -30,15 +30,17 @@ model Admin {
 }
 
 model Faculty {
-  id        String      @id @default(uuid())
-  userId    String      @unique
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
-  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  Grade     Grade[]
-  programme Programme[]
-  Project   Project[]
-  Remark    Remark[]
+  id             String           @id @default(uuid())
+  userId         String           @unique
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  role           FacultyRole      @default(NO_ROLE)
+  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  Grade          Grade[]
+  programme      Programme[]
+  Project        Project[]
+  Remark         Remark[]
+  ProjectFaculty ProjectFaculty[]
 }
 
 model Student {
@@ -74,26 +76,27 @@ model Programme {
 }
 
 model Project {
-  id            String         @id @default(uuid())
+  id            String           @id @default(uuid())
   title         String
   description   String
   programmeId   String
-  status        ProjectStatus  @default(PENDING)
+  status        ProjectStatus    @default(PENDING)
   facultyId     String
   projectCode   String
   venueId       String?
   reviewMessage String?
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
   Grade         Grade[]
   PeerReview    PeerReview[]
-  faculty       Faculty        @relation(fields: [facultyId], references: [id], onDelete: Cascade)
-  programme     Programme      @relation(fields: [programmeId], references: [id])
-  venue         Venue?         @relation(fields: [venueId], references: [id])
+  faculty       Faculty          @relation(fields: [facultyId], references: [id], onDelete: Cascade)
+  programme     Programme        @relation(fields: [programmeId], references: [id])
+  venue         Venue?           @relation(fields: [venueId], references: [id])
   projectPlans  ProjectPlan[]
   registrations Registration[]
   students      Student[]
   Milestone     Milestone[]
+  faculties     ProjectFaculty[]
 }
 
 model ProjectPlan {
@@ -263,4 +266,21 @@ model Remark {
   faculty   Faculty   @relation(fields: [facultyId], references: [id], onDelete: Cascade)
 
   @@unique([milestoneId, facultyId])
+}
+
+model ProjectFaculty {
+  id        String      @id @default(uuid())
+  projectId String
+  facultyId String
+  role      FacultyRole
+  project   Project     @relation(fields: [projectId], references: [id])
+  faculty   Faculty     @relation(fields: [facultyId], references: [id])
+
+  @@unique([projectId, facultyId])
+}
+
+enum FacultyRole {
+  SUPERVISOR
+  MODERATOR
+  NO_ROLE
 }

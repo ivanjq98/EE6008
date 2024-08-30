@@ -47,6 +47,12 @@ export default async function FacultyLayout({ children }: FacultyLayoutProps) {
         href: '/faculty/review-projects',
         icon: 'reviewProjects',
         type: 'link'
+      },
+      {
+        title: 'Project Moderator',
+        href: '/faculty/project-moderator',
+        icon: 'user',
+        type: 'link'
       }
     ]
   }

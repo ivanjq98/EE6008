@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
+import { Prisma } from '@prisma/client'
 
 import { prisma } from '@/src/lib/prisma'
 import { AddProjectFormSchema, EditProjectFormSchema } from '@/src/lib/schema'
@@ -52,45 +53,63 @@ export async function addProject(data: z.infer<typeof AddProjectFormSchema>, fac
       2
     )}${semesterName.slice(-1)}`
 
-    const data = await prisma.project.create({
-      data: {
+    const result = await prisma.$transaction(async (prisma) => {
+      const projectData: Prisma.ProjectCreateInput = {
         title,
         description,
         status: 'PENDING',
         projectCode,
-        ...(venueId && {
-          venue: {
-            connect: {
-              id: venueId
-            }
+        programme: {
+          connect: {
+            id: programmeData.id
           }
-        }),
+        },
+        venue: venueId
+          ? {
+              connect: {
+                id: venueId
+              }
+            }
+          : undefined,
         faculty: {
           connect: {
             id: facultyId
           }
         },
-        programme: {
-          connect: {
-            name_semesterId: {
-              name: programme,
-              semesterId
-            }
+        faculties: {
+          create: {
+            faculty: {
+              connect: {
+                id: facultyId
+              }
+            },
+            role: 'SUPERVISOR'
           }
         }
       }
+
+      const project = await prisma.project.create({
+        data: projectData,
+        include: {
+          faculties: true,
+          faculty: true
+        }
+      })
+
+      return project
     })
 
     revalidatePath('/faculty/my-proposal')
     revalidatePath('/faculty/view-all-projects')
 
     return {
-      message: `Project proposal successfully created!`,
+      message: `Project proposal successfully created with faculty assigned as Supervisor!`,
       status: 'OK',
-      data
+      data: result
     }
   } catch (error) {
-    return { message: `${error}`, status: 'ERROR' }
+    console.error('Error creating project:', error)
+    return { message: `Failed to create project: ${error}`, status: 'ERROR' }
   }
 }
 

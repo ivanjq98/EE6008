@@ -234,6 +234,22 @@ export const adminConfig: AdminConfig = {
       href: '/admin/project/view',
       icon: 'viewProject',
       type: 'link'
+    },
+    {
+      title: 'Summary',
+      type: 'header'
+    },
+    {
+      title: 'Marks Overview',
+      href: '/admin/student-marks-overview',
+      icon: 'reviewProjects',
+      type: 'link'
+    },
+    {
+      title: 'Statistics',
+      href: '/admin/statistics',
+      icon: 'statistics',
+      type: 'link'
     }
   ]
 }
