@@ -28,7 +28,7 @@ export default async function FacultyProjectsPage() {
       <ul className='space-y-2'>
         {projects.map((project) => (
           <li key={project.id} className='rounded border p-2'>
-            <Link href={`/faculty/projects/${project.id}/students`} className='text-blue-500 hover:underline'>
+            <Link href={`/faculty/projects/${project.id}/milestones`} className='text-blue-500 hover:underline'>
               {project.title}
             </Link>
           </li>

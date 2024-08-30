@@ -43,16 +43,10 @@ export default async function FacultyProjectStudentsPage({ params }: PageProps) 
     <div className='container mx-auto p-4'>
       <h1 className='mb-4 text-2xl font-bold'>{project.title} - Students</h1>
       <ul className='space-y-2'>
-        {project.students.map((student) => (
-          <li key={student.id} className='rounded border p-2'>
-            <Link
-              href={`/faculty/projects/${params.projectId}/students/${student.id}/milestones`}
-              className='text-blue-500 hover:underline'
-            >
-              {student.user.name}
-            </Link>
-          </li>
-        ))}
+        <Link
+          href={`/faculty/projects/${params.projectId}/milestones`}
+          className='text-blue-500 hover:underline'
+        ></Link>
       </ul>
     </div>
   )

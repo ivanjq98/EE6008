@@ -5,10 +5,10 @@ import { authOptions } from '@/src/lib/auth'
 import { GanttChart } from './GanttChart'
 
 interface PageProps {
-  params: { projectId: string; studentId: string }
+  params: { projectId: string }
 }
 
-export default async function FacultyRemarksPage({ params }: PageProps) {
+export default async function FacultyProjectTimelinePage({ params }: PageProps) {
   const session = await getServerSession(authOptions)
 
   if (!session || !session.user.facultyId) {
@@ -23,9 +23,6 @@ export default async function FacultyRemarksPage({ params }: PageProps) {
       },
       include: {
         students: {
-          where: {
-            id: params.studentId
-          },
           include: {
             user: true,
             Milestone: {
@@ -47,30 +44,35 @@ export default async function FacultyRemarksPage({ params }: PageProps) {
       }
     })
 
-    if (!project || project.students.length === 0) {
+    if (!project) {
       notFound()
     }
 
-    const student = project.students[0]
     const timeline = project.programme.semester.timeline
 
     if (!timeline) {
       return <div>Semester timeline not found</div>
     }
 
+    // Combine milestones from all students
+    const allMilestones = project.students.flatMap((student) =>
+      student.Milestone.map((milestone) => ({
+        ...milestone,
+        studentName: student.user.name
+      }))
+    )
+
     return (
       <div className='container mx-auto p-4'>
-        <h1 className='mb-4 text-2xl font-bold'>
-          {project.title} - Timeline for {student.user.name}
-        </h1>
-        {student.Milestone.length > 0 ? (
+        <h1 className='mb-4 text-2xl font-bold'>{project.title} - Project Timeline</h1>
+        {allMilestones.length > 0 ? (
           <GanttChart
-            milestones={student.Milestone}
+            milestones={allMilestones}
             startDate={timeline.studentRegistrationStart}
             endDate={timeline.studentResultRelease}
           />
         ) : (
-          <p>This student has not created any milestones yet.</p>
+          <p>No milestones have been created for this project yet.</p>
         )}
       </div>
     )

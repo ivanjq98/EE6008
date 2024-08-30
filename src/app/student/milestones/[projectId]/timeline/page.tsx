@@ -58,7 +58,6 @@ const StudentGanttChartPage = async ({ params }: PageProps) => {
       return <div>Semester timeline not found</div>
     }
 
-    // Flatten milestones from all students
     const allMilestones = project.students.flatMap((student) =>
       student.Milestone.map((milestone) => ({
         ...milestone,
