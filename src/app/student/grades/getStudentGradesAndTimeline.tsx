@@ -9,7 +9,7 @@ type GradeWithDetails = Grade & {
   }
 }
 
-export async function getStudentGradesAndTimeline(studentId: string) {
+export const getStudentGradesAndTimeline = async (studentId: string) => {
   const student = await prisma.student.findUnique({
     where: { id: studentId },
     include: {
@@ -30,48 +30,58 @@ export async function getStudentGradesAndTimeline(studentId: string) {
     }
   })
 
-  const xinruixgao_test = await prisma.student.findUnique({
+  const results = await prisma.student.findUnique({
     where: { id: 'b7c95900-5b48-4218-8b91-40a78abfbfbc' },
     include: {
-      Grade: true
+      Grade: {
+        include: {
+          semesterGradeType: true // This will include the GradeType information
+        }
+      }
     }
   })
 
-  console.log('xinruixgao; xinruixgao_test', xinruixgao_test)
+  console.log('xinruixgao; results', results)
 
-  const gradesArray = xinruixgao_test?.Grade.map((grade) => ({
+  const semester = await prisma.semester.findFirst({
+    where: {
+      active: true
+    },
+    select: {
+      id: true,
+      name: true,
+      timeline: {
+        select: {
+          studentResultRelease: true
+        }
+      }
+    }
+  })
+
+  const gradesArray = results?.Grade.map((grade) => ({
     id: grade.id,
     score: grade.score,
-    semesterGradeTypeId: grade.semesterGradeTypeId
+    semesterGradeTypeId: grade.semesterGradeType.name,
+    weightage: grade.semesterGradeType.weightage
   }))
 
   console.log('xinruixgao; gradesArray test', gradesArray)
 
-  if (!student) {
+  const studentResultRelease = semester?.timeline?.studentResultRelease
+
+  if (studentResultRelease) {
+    const formattedDate = studentResultRelease.toISOString().split('T')[0]
+    console.log('ivan; studentResultRelease', formattedDate)
+  } else {
+    console.log('ivan; studentResultRelease not found')
+  }
+  if (!student || !semester) {
     return { gradesBySemester: {}, resultReleaseDate: null }
   }
 
-  // Find the most recent semester with a timeline
-  const semestersWithTimeline = student.Grade.map((grade) => grade.semesterGradeType.semester).filter(
-    (semester): semester is Semester & { timeline: SemesterTimeline } => semester.timeline !== null
-  )
+  const resultReleaseDate = semester.timeline?.studentResultRelease ?? null
 
-  const latestSemesterWithTimeline =
-    semestersWithTimeline.length > 0
-      ? semestersWithTimeline.reduce((latest, current) => (latest.name > current.name ? latest : current))
-      : null
+  console.log('ivan; semesterGradeTest', resultReleaseDate)
 
-  const resultReleaseDate = latestSemesterWithTimeline?.timeline.studentResultRelease ?? null
-
-  // Group grades by semester
-  const gradesBySemester = student.Grade.reduce<Record<string, GradeWithDetails[]>>((acc, grade) => {
-    const semesterName = grade.semesterGradeType.semester.name
-    if (!acc[semesterName]) {
-      acc[semesterName] = []
-    }
-    acc[semesterName].push(grade as GradeWithDetails)
-    return acc
-  }, {})
-
-  return { gradesBySemester, resultReleaseDate }
+  return { gradesArray, semester }
 }
