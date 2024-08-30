@@ -34,7 +34,6 @@ model Faculty {
   userId         String           @unique
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
-  role           FacultyRole      @default(NO_ROLE)
   user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   Grade          Grade[]
   programme      Programme[]
