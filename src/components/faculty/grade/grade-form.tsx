@@ -32,6 +32,7 @@ interface GradeFormProps {
   }[]
   semesterGradeTypeId: string
   weightage: number
+  facultyRole: 'SUPERVISOR' | 'MODERATOR'
 }
 
 const getScoreLabel = (score: number, weightage: number) => {
@@ -43,32 +44,45 @@ const getScoreLabel = (score: number, weightage: number) => {
   return 'F'
 }
 
-export function GradeForm({ defaultValues, semesterGradeTypeId, weightage }: GradeFormProps) {
+export function GradeForm({ defaultValues, semesterGradeTypeId, weightage, facultyRole }: GradeFormProps) {
   const form = useForm<z.infer<typeof UpdateStudentGradeFormSchema>>({
     resolver: zodResolver(UpdateStudentGradeFormSchema),
     defaultValues: { studentGrades: defaultValues }
   })
 
-  const { fields, append, remove } = useFieldArray({
+  const { fields } = useFieldArray({
     name: 'studentGrades',
     control: form.control
   })
 
   async function onSubmit(values: z.infer<typeof UpdateStudentGradeFormSchema>) {
     const filteredValues = values.studentGrades.filter((student) => student.grade !== '')
-    values.studentGrades = filteredValues
 
-    const result = await updateStudentGrade(values, semesterGradeTypeId)
-    if (result.status === 'ERROR') {
-      toast.error(result.message)
-    } else {
-      toast.success(result.message)
+    if (filteredValues.length === 0) {
+      toast.error('No grades to submit')
+      return
+    }
+
+    try {
+      const result = await updateStudentGrade({ studentGrades: filteredValues }, semesterGradeTypeId, facultyRole)
+      if (result.status === 'ERROR') {
+        toast.error(result.message)
+      } else {
+        toast.success(result.message)
+        form.reset({ studentGrades: defaultValues })
+      }
+    } catch (error) {
+      console.error('Error updating grades:', error)
+      toast.error('An unexpected error occurred. Please try again.')
     }
   }
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>
+        <h2 className='mb-4 text-2xl font-bold'>
+          {facultyRole === 'SUPERVISOR' ? 'Supervisor Grading' : 'Moderator Grading'}
+        </h2>
         <div className='space-y-2'>
           <div className='grid items-center gap-x-4 gap-y-4 px-1 md:grid-cols-12'>
             <div className='hidden gap-x-4 md:col-span-12 md:grid md:grid-cols-12'>
@@ -87,17 +101,26 @@ export function GradeForm({ defaultValues, semesterGradeTypeId, weightage }: Gra
             </div>
             {fields.map((field, index) => (
               <React.Fragment key={field.id}>
-                <div className='text-sm md:col-span-4'>{form.getValues(`studentGrades.${index}.studentName`)}</div>
-                <div className='text-sm md:col-span-3'>
-                  {form.getValues(`studentGrades.${index}.matriculationNumber`)}
-                </div>
+                <div className='text-sm md:col-span-4'>{field.studentName}</div>
+                <div className='text-sm md:col-span-3'>{field.matriculationNumber}</div>
                 <FormField
                   control={form.control}
                   name={`studentGrades.${index}.grade`}
                   render={({ field }) => (
                     <FormItem className='flex justify-end md:col-span-3'>
                       <FormControl>
-                        <Input className='w-20 text-right' {...field} type='number' min={0} max={weightage} />
+                        <Input
+                          className='w-20 text-right'
+                          {...field}
+                          type='number'
+                          min={0}
+                          max={weightage}
+                          step='0.01'
+                          onChange={(e) => {
+                            const value = parseFloat(e.target.value)
+                            field.onChange(isNaN(value) ? '' : Math.min(value, weightage))
+                          }}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -113,10 +136,8 @@ export function GradeForm({ defaultValues, semesterGradeTypeId, weightage }: Gra
           </div>
         </div>
 
-        <FormDescription>
-          Leave empty for no marks, grade must be between the range from 0 to {weightage}
-        </FormDescription>
-        <Button type='submit'>Submit</Button>
+        <FormDescription>Leave empty for no marks. Grade must be between 0 and {weightage}.</FormDescription>
+        <Button type='submit'>Submit {facultyRole === 'SUPERVISOR' ? 'Supervisor' : 'Moderator'} Grades</Button>
       </form>
     </Form>
   )

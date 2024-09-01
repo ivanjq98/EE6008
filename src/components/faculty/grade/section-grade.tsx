@@ -1,33 +1,47 @@
+// src/components/faculty/grade/section-grade.tsx
 import { getServerSession } from 'next-auth'
-
 import { authOptions } from '@/src/lib/auth'
 import { prisma } from '@/src/lib/prisma'
-
 import { GradeForm } from './grade-form'
 
 interface SectionGradeProps {
   studentsData: { name: string; id: string; matriculationNumber: string }[]
   projectId: string
   semesterGradeTypeId: string
+  facultyId?: string
+  facultyRole: 'SUPERVISOR' | 'MODERATOR'
 }
 
-const SectionGrade = async ({ studentsData, projectId, semesterGradeTypeId }: SectionGradeProps) => {
-  const session = await getServerSession(authOptions)
-
-  if (!session) return null
-
-  const facultyId = session.user.facultyId
-
-  if (facultyId === undefined) return null
-
+const SectionGrade = async ({
+  studentsData,
+  projectId,
+  semesterGradeTypeId,
+  facultyId,
+  facultyRole
+}: SectionGradeProps) => {
   const gradesData = await prisma.grade.findMany({
     where: {
       projectId: projectId,
-      semesterGradeTypeId: semesterGradeTypeId
+      semesterGradeTypeId: semesterGradeTypeId,
+      faculty: {
+        id: facultyId,
+        ProjectFaculty: {
+          some: {
+            projectId: projectId,
+            role: facultyRole
+          }
+        }
+      }
+    },
+    include: {
+      faculty: {
+        include: {
+          ProjectFaculty: true
+        }
+      }
     }
   })
 
-  // Fetch the grade type information including weightage
   const gradeType = await prisma.gradeType.findUnique({
     where: {
       id: semesterGradeTypeId
@@ -47,15 +61,12 @@ const SectionGrade = async ({ studentsData, projectId, semesterGradeTypeId }: Se
     return {
       studentId: student.id,
       studentName: student.name,
-      facultyId: facultyId,
+      facultyId: facultyId ?? '', // Provide a default empty
       projectId: projectId,
-      name: student.name,
-      grade: studentGrade?.score ? studentGrade.score : ('' as const),
+      grade: studentGrade?.score != null ? (studentGrade.score as number) : ('' as const),
       matriculationNumber: student.matriculationNumber
     }
   })
-
-  console.log(sanitizedDefaultValue)
 
   return (
     <div>
@@ -63,6 +74,7 @@ const SectionGrade = async ({ studentsData, projectId, semesterGradeTypeId }: Se
         defaultValues={sanitizedDefaultValue}
         semesterGradeTypeId={semesterGradeTypeId}
         weightage={gradeType.weightage}
+        facultyRole={facultyRole}
       />
     </div>
   )

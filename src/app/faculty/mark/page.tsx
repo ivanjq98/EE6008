@@ -12,7 +12,7 @@ const MarkPage = async () => {
   const session = await getServerSession(authOptions)
   const user = session?.user
 
-  if (!user) return null
+  if (!user || !user.facultyId) return null
 
   const activeSemester = await prisma.semester.findFirst({
     where: {
@@ -48,15 +48,20 @@ const MarkPage = async () => {
 
   if (currentDate < facultyMarkEntryStart || currentDate > facultyMarkEntryEnd) return notMarkingPeriodJSX
 
-  const projects = await prisma.project.findMany({
+  const projectsWithRoles = await prisma.projectFaculty.findMany({
     where: {
       facultyId: user.facultyId,
-      status: ProjectStatus.APPROVED,
-      programme: {
-        semester: {
-          active: true
+      project: {
+        status: ProjectStatus.APPROVED,
+        programme: {
+          semester: {
+            active: true
+          }
         }
       }
+    },
+    include: {
+      project: true
     }
   })
 
@@ -67,10 +72,10 @@ const MarkPage = async () => {
       <div>
         <TypographyP>Select project to grade:</TypographyP>
         <ol className='my-4 ml-6 list-decimal [&>li]:mt-2'>
-          {projects.map((project) => (
+          {projectsWithRoles.map(({ project, role }) => (
             <li key={project.id}>
               <Link className='underline-offset-4 hover:underline' href={`/faculty/mark/${project.id}`}>
-                {project.title}
+                {project.title} - {role === 'SUPERVISOR' ? 'Supervisor' : 'Moderator'}
               </Link>
             </li>
           ))}

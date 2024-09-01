@@ -12,7 +12,14 @@ import { prisma } from '@/src/lib/prisma'
 const MarkProjectPage = async ({ params }: { params: { slug: string } }) => {
   const session = await getServerSession(authOptions)
 
-  if (!session) return null
+  if (!session || !session.user.facultyId) {
+    return (
+      <div className='space-y-8'>
+        <Header title='Marking' description='Grade your student here.' />
+        <div>You are not authorized to access this page.</div>
+      </div>
+    )
+  }
 
   const projectDetail = await prisma.project.findUnique({
     where: {
@@ -36,6 +43,14 @@ const MarkProjectPage = async ({ params }: { params: { slug: string } }) => {
             }
           }
         }
+      },
+      faculties: {
+        where: {
+          facultyId: session.user.facultyId
+        },
+        select: {
+          role: true
+        }
       }
     }
   })
@@ -54,10 +69,9 @@ const MarkProjectPage = async ({ params }: { params: { slug: string } }) => {
     )
   }
 
-  if (
-    projectDetail.facultyId !== session.user.facultyId &&
-    projectDetail.programme.leaderId !== session.user.facultyId
-  ) {
+  const facultyRole = projectDetail.faculties[0]?.role
+
+  if (!facultyRole || (facultyRole !== 'SUPERVISOR' && facultyRole !== 'MODERATOR')) {
     return (
       <div>
         <Header title='Marking' description='Grade your student here.' />
@@ -87,7 +101,7 @@ const MarkProjectPage = async ({ params }: { params: { slug: string } }) => {
     <div className='space-y-8'>
       <Header title='Marking' description='Grade your student here.' />
 
-      <Tabs defaultValue={semesterGradeType[0].name || undefined}>
+      <Tabs defaultValue={semesterGradeType[0]?.name}>
         <TabsList>
           {semesterGradeType.map((grade) => (
             <TabsTrigger value={grade.name} key={grade.id}>
@@ -97,7 +111,13 @@ const MarkProjectPage = async ({ params }: { params: { slug: string } }) => {
         </TabsList>
         {semesterGradeType.map((grade) => (
           <TabsContent value={grade.name} key={grade.id}>
-            <SectionGrade studentsData={projectStudents} projectId={projectDetail.id} semesterGradeTypeId={grade.id} />
+            <SectionGrade
+              studentsData={projectStudents}
+              projectId={projectDetail.id}
+              semesterGradeTypeId={grade.id}
+              facultyId={session.user.facultyId}
+              facultyRole={facultyRole}
+            />
           </TabsContent>
         ))}
       </Tabs>

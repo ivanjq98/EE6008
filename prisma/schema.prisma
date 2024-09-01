@@ -171,18 +171,20 @@ model Venue {
 }
 
 model Grade {
-  id                  String    @id @default(uuid())
+  id                  String          @id @default(uuid())
   projectId           String
   studentId           String
   facultyId           String
   score               Float?
   semesterGradeTypeId String
-  createdAt           DateTime  @default(now())
-  updatedAt           DateTime  @updatedAt
-  faculty             Faculty   @relation(fields: [facultyId], references: [id])
-  project             Project   @relation(fields: [projectId], references: [id])
-  semesterGradeType   GradeType @relation(fields: [semesterGradeTypeId], references: [id])
-  student             Student   @relation(fields: [studentId], references: [id])
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+  faculty             Faculty         @relation(fields: [facultyId], references: [id])
+  project             Project         @relation(fields: [projectId], references: [id])
+  semesterGradeType   GradeType       @relation(fields: [semesterGradeTypeId], references: [id])
+  student             Student         @relation(fields: [studentId], references: [id])
+  ProjectFaculty      ProjectFaculty? @relation(fields: [projectFacultyId], references: [id])
+  projectFacultyId    String?
 
   @@unique([studentId, projectId, facultyId, semesterGradeTypeId])
 }
@@ -274,6 +276,7 @@ model ProjectFaculty {
   role      FacultyRole
   project   Project     @relation(fields: [projectId], references: [id])
   faculty   Faculty     @relation(fields: [facultyId], references: [id])
+  grades    Grade[]
 
   @@unique([projectId, facultyId])
 }
