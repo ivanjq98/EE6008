@@ -13,12 +13,14 @@ import { Textarea } from '@/src/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/src/components/ui/select'
 import { createMilestone } from '@/src/server/data/milestone'
 
+const MilestoneStatus = z.enum(['NOT_STARTED', 'STARTED', 'NEARLY_HALF', 'HALF_WAY_THERE', 'ALMOST_DONE', 'COMPLETED'])
+
 const MilestoneFormSchema = z.object({
   objective: z.string().min(1, 'Objective is required'),
   description: z.string().optional(),
   startDate: z.string().min(1, 'Start date is required'),
   endDate: z.string().min(1, 'End date is required'),
-  status: z.enum(['COMPLETED', 'NOT_COMPLETED'])
+  status: MilestoneStatus
 })
 
 type MilestoneFormData = z.infer<typeof MilestoneFormSchema>
@@ -36,7 +38,7 @@ export function StudentMilestoneForm({ projectId }: StudentMilestoneFormProps) {
       description: '',
       startDate: '',
       endDate: '',
-      status: 'NOT_COMPLETED'
+      status: 'NOT_STARTED'
     }
   })
 
@@ -135,8 +137,12 @@ export function StudentMilestoneForm({ projectId }: StudentMilestoneFormProps) {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value='NOT_COMPLETED'>Not Completed</SelectItem>
-                  <SelectItem value='COMPLETED'>Completed</SelectItem>
+                  <SelectItem value='NOT_STARTED'>Not Started (0%)</SelectItem>
+                  <SelectItem value='STARTED'>Started (20%)</SelectItem>
+                  <SelectItem value='NEARLY_HALF'>Nearly Half (40%)</SelectItem>
+                  <SelectItem value='HALF_WAY_THERE'>Half Way There (60%)</SelectItem>
+                  <SelectItem value='ALMOST_DONE'>Almost Done (80%)</SelectItem>
+                  <SelectItem value='COMPLETED'>Completed (100%)</SelectItem>
                 </SelectContent>
               </Select>
               <FormMessage />

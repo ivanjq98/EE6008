@@ -1,4 +1,3 @@
-// src/app/student/milestones/page.tsx
 import { redirect } from 'next/navigation'
 import { getServerSession } from 'next-auth'
 import { prisma } from '@/src/lib/prisma'

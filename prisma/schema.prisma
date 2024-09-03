@@ -251,8 +251,12 @@ model Milestone {
 }
 
 enum MilestoneStatus {
-  COMPLETED
-  NOT_COMPLETED
+  NOT_STARTED // 0%
+  STARTED // 20%
+  NEARLY_HALF // 40%
+  HALF_WAY_THERE // 60%
+  ALMOST_DONE // 80%
+  COMPLETED // 100%
 }
 
 model Remark {
