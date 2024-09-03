@@ -1,10 +1,9 @@
 'use client'
 
 import React, { useMemo, useState, useEffect } from 'react'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Line } from 'recharts'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/src/components/ui/select'
 import { Card, CardContent, CardHeader, CardTitle } from '@/src/components/ui/card'
-import * as d3 from 'd3'
 
 interface StudentMark {
   id: string
@@ -12,6 +11,8 @@ interface StudentMark {
   studentName: string
   semesterId: string
   semesterName: string
+  projectId: string
+  projectTitle: string
   [key: string]: number | string
 }
 
@@ -20,10 +21,17 @@ interface Semester {
   name: string
 }
 
+interface FacultyProject {
+  projectId: string
+  role: 'SUPERVISOR' | 'MODERATOR'
+  projectTitle: string
+}
+
 interface StatisticsClientProps {
   data: StudentMark[]
   assessmentComponentsBySemester: Record<string, string[]>
   semesters: Semester[]
+  facultyProjects: FacultyProject[]
 }
 
 function calculateStatistics(scores: number[]) {
@@ -70,19 +78,15 @@ function createHistogramData(scores: number[], bins = 10) {
   }))
 }
 
-function kernelDensityEstimator(kernel: (v: number) => number, X: number[]) {
-  return function (V: number[]) {
-    return X.map((x) => [x, d3.mean(V, (v) => kernel(x - v)) ?? 0])
-  }
-}
-
-function kernelEpanechnikov(k: number) {
-  return (v: number) => (Math.abs((v /= k)) <= 1 ? (0.75 * (1 - v * v)) / k : 0)
-}
-
-export default function StatisticsClient({ data, assessmentComponentsBySemester, semesters }: StatisticsClientProps) {
+export default function StatisticsClient({
+  data,
+  assessmentComponentsBySemester,
+  semesters,
+  facultyProjects
+}: StatisticsClientProps) {
   const [selectedSemester, setSelectedSemester] = useState('all')
   const [selectedComponent, setSelectedComponent] = useState('totalScore')
+  const [selectedProject, setSelectedProject] = useState('all')
 
   const availableComponents = useMemo(() => {
     if (selectedSemester === 'all') {
@@ -98,8 +102,12 @@ export default function StatisticsClient({ data, assessmentComponentsBySemester,
   }, [availableComponents, selectedComponent])
 
   const filteredData = useMemo(() => {
-    return selectedSemester === 'all' ? data : data.filter((item) => item.semesterId === selectedSemester)
-  }, [data, selectedSemester])
+    return data.filter(
+      (item) =>
+        (selectedSemester === 'all' || item.semesterId === selectedSemester) &&
+        (selectedProject === 'all' || item.projectId === selectedProject)
+    )
+  }, [data, selectedSemester, selectedProject])
 
   const validData = useMemo(() => {
     return filteredData.filter((item) => {
@@ -109,16 +117,16 @@ export default function StatisticsClient({ data, assessmentComponentsBySemester,
   }, [filteredData, selectedComponent])
 
   const statistics = useMemo(() => {
-    if (!filteredData || filteredData.length === 0) return null
-    const scores = filteredData.map((item) => Number(item[selectedComponent]) || 0)
+    if (!validData || validData.length === 0) return null
+    const scores = validData.map((item) => Number(item[selectedComponent]) || 0)
     return calculateStatistics(scores)
-  }, [filteredData, selectedComponent])
+  }, [validData, selectedComponent])
 
   const histogramData = useMemo(() => {
-    if (!filteredData || filteredData.length === 0) return []
-    const scores = filteredData.map((item) => Number(item[selectedComponent]) || 0)
+    if (!validData || validData.length === 0) return []
+    const scores = validData.map((item) => Number(item[selectedComponent]) || 0)
     return createHistogramData(scores)
-  }, [filteredData, selectedComponent])
+  }, [validData, selectedComponent])
 
   return (
     <div className='container mx-auto py-10'>
@@ -134,6 +142,20 @@ export default function StatisticsClient({ data, assessmentComponentsBySemester,
             {semesters.map((semester) => (
               <SelectItem key={semester.id} value={semester.id}>
                 {semester.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Select value={selectedProject} onValueChange={setSelectedProject}>
+          <SelectTrigger className='w-[200px]'>
+            <SelectValue placeholder='Select project' />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value='all'>All Projects</SelectItem>
+            {facultyProjects.map((project) => (
+              <SelectItem key={project.projectId} value={project.projectId}>
+                {project.projectTitle}
               </SelectItem>
             ))}
           </SelectContent>
