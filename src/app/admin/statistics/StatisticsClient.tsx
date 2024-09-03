@@ -1,10 +1,12 @@
 'use client'
 
 import React, { useMemo, useState, useEffect } from 'react'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Line } from 'recharts'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/src/components/ui/select'
 import { Card, CardContent, CardHeader, CardTitle } from '@/src/components/ui/card'
-import * as d3 from 'd3'
+import d3 from 'd3'
+
+type ScoreType = 'supervisor' | 'moderator' | 'weighted'
 
 interface StudentMark {
   id: string
@@ -12,7 +14,8 @@ interface StudentMark {
   studentName: string
   semesterId: string
   semesterName: string
-  [key: string]: number | string
+  totalScore: number
+  [key: string]: number | string | { supervisor: number; moderator: number; weighted: number }
 }
 
 interface Semester {
@@ -80,9 +83,14 @@ function kernelEpanechnikov(k: number) {
   return (v: number) => (Math.abs((v /= k)) <= 1 ? (0.75 * (1 - v * v)) / k : 0)
 }
 
+function isScoreObject(value: any): value is { supervisor: number; moderator: number; weighted: number } {
+  return value && typeof value === 'object' && 'supervisor' in value && 'moderator' in value && 'weighted' in value
+}
+
 export default function StatisticsClient({ data, assessmentComponentsBySemester, semesters }: StatisticsClientProps) {
   const [selectedSemester, setSelectedSemester] = useState('all')
   const [selectedComponent, setSelectedComponent] = useState('totalScore')
+  const [selectedScoreType, setSelectedScoreType] = useState<ScoreType>('weighted')
 
   const availableComponents = useMemo(() => {
     if (selectedSemester === 'all') {
@@ -103,22 +111,51 @@ export default function StatisticsClient({ data, assessmentComponentsBySemester,
 
   const validData = useMemo(() => {
     return filteredData.filter((item) => {
-      const score = Number(item[selectedComponent])
-      return score !== null && score !== undefined && (selectedComponent === 'totalScore' ? score > 0 : true)
+      if (selectedComponent === 'totalScore') {
+        const score = item[selectedComponent] as number
+        return score !== null && score !== undefined && score > 0
+      } else {
+        const scoreObj = item[selectedComponent]
+        if (isScoreObject(scoreObj)) {
+          const score = scoreObj[selectedScoreType]
+          return score !== null && score !== undefined && score > 0
+        }
+        return false
+      }
     })
-  }, [filteredData, selectedComponent])
+  }, [filteredData, selectedComponent, selectedScoreType])
 
   const statistics = useMemo(() => {
-    if (!filteredData || filteredData.length === 0) return null
-    const scores = filteredData.map((item) => Number(item[selectedComponent]) || 0)
+    if (!validData || validData.length === 0) return null
+    const scores = validData.map((item) => {
+      if (selectedComponent === 'totalScore') {
+        return item[selectedComponent] as number
+      } else {
+        const scoreObj = item[selectedComponent]
+        if (isScoreObject(scoreObj)) {
+          return scoreObj[selectedScoreType]
+        }
+        return 0 // or some default value
+      }
+    })
     return calculateStatistics(scores)
-  }, [filteredData, selectedComponent])
+  }, [validData, selectedComponent, selectedScoreType])
 
   const histogramData = useMemo(() => {
-    if (!filteredData || filteredData.length === 0) return []
-    const scores = filteredData.map((item) => Number(item[selectedComponent]) || 0)
+    if (!validData || validData.length === 0) return []
+    const scores = validData.map((item) => {
+      if (selectedComponent === 'totalScore') {
+        return item[selectedComponent] as number
+      } else {
+        const scoreObj = item[selectedComponent]
+        if (isScoreObject(scoreObj)) {
+          return scoreObj[selectedScoreType]
+        }
+        return 0 // or some default value
+      }
+    })
     return createHistogramData(scores)
-  }, [filteredData, selectedComponent])
+  }, [validData, selectedComponent, selectedScoreType])
 
   return (
     <div className='container mx-auto py-10'>
@@ -151,6 +188,19 @@ export default function StatisticsClient({ data, assessmentComponentsBySemester,
             ))}
           </SelectContent>
         </Select>
+
+        {selectedComponent !== 'totalScore' && (
+          <Select value={selectedScoreType} onValueChange={(value) => setSelectedScoreType(value as ScoreType)}>
+            <SelectTrigger className='w-[200px]'>
+              <SelectValue placeholder='Select score type' />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value='supervisor'>Supervisor</SelectItem>
+              <SelectItem value='moderator'>Moderator</SelectItem>
+              <SelectItem value='weighted'>Weighted</SelectItem>
+            </SelectContent>
+          </Select>
+        )}
       </div>
 
       <div className='mb-10 grid grid-cols-1 gap-4 md:grid-cols-2'>
