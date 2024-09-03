@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useFieldArray, useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import * as z from 'zod'
+import { useEffect, useState } from 'react'
 
 import { createSemester } from '@/src/app/actions/admin/semester'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/src/components/tabs'
@@ -34,6 +35,19 @@ import { CreateSemesterDataFormSchema } from '@/src/lib/schema'
 import { cn } from '@/src/lib/utils'
 import { zodResolver } from '@hookform/resolvers/zod'
 
+const ExtendedCreateSemesterDataFormSchema = CreateSemesterDataFormSchema.extend({
+  facultyRoleWeightages: z
+    .object({
+      SUPERVISOR: z.number().min(0).max(100),
+      MODERATOR: z.number().min(0).max(100)
+    })
+    .refine((data) => data.SUPERVISOR + data.MODERATOR === 100, {
+      message: 'Weightages must add up to 100%'
+    })
+})
+
+type ExtendedCreateSemesterDataFormType = z.infer<typeof ExtendedCreateSemesterDataFormSchema>
+
 interface CreateSemesterFormProps {
   faculties: ({
     user: {
@@ -49,7 +63,10 @@ interface CreateSemesterFormProps {
 }
 
 export function CreateSemesterForm({ faculties }: CreateSemesterFormProps) {
-  const defaultValues: Partial<z.infer<typeof CreateSemesterDataFormSchema>> = {
+  const [isLoading, setIsLoading] = useState(true)
+  const router = useRouter()
+
+  const defaultValues: Partial<ExtendedCreateSemesterDataFormType> = {
     programmeDetails: [
       {
         faculty: '',
@@ -82,17 +99,35 @@ export function CreateSemesterForm({ faculties }: CreateSemesterFormProps) {
         name: '',
         weightage: 0
       }
-    ]
+    ],
+    facultyRoleWeightages: {
+      SUPERVISOR: 70,
+      MODERATOR: 30
+    }
   }
 
-  const router = useRouter()
-  const form = useForm<z.infer<typeof CreateSemesterDataFormSchema>>({
-    resolver: zodResolver(CreateSemesterDataFormSchema),
+  const form = useForm<ExtendedCreateSemesterDataFormType>({
+    resolver: zodResolver(ExtendedCreateSemesterDataFormSchema),
     defaultValues: defaultValues
   })
 
-  async function onSubmit(data: z.infer<typeof CreateSemesterDataFormSchema>) {
-    console.log('ivan; onSubmit')
+  useEffect(() => {
+    // Fetch existing weightages or use defaults
+    fetch('/api/facultyRoleWeightage')
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.SUPERVISOR && data.MODERATOR) {
+          form.setValue('facultyRoleWeightages', data)
+        }
+        setIsLoading(false)
+      })
+      .catch((error) => {
+        console.error('Error fetching weightages:', error)
+        setIsLoading(false)
+      })
+  }, [form])
+
+  async function onSubmit(data: ExtendedCreateSemesterDataFormType) {
     console.log('Form data before submission:', data)
     // Calculate total weightage
     const totalWeightage = data.assessmentFormats.reduce((sum, format) => sum + (format.weightage || 0), 0)
@@ -103,13 +138,31 @@ export function CreateSemesterForm({ faculties }: CreateSemesterFormProps) {
       return // Prevent form submission
     }
 
-    const result = await createSemester(data)
-    if (result.status === 'ERROR') {
-      toast.error(result.message)
-    } else {
-      toast.success(result.message)
-      router.push(`/admin/semester?semester=${data.semesterName}`)
-      router.refresh()
+    try {
+      // Update or create weightages
+      const weightageResponse = await fetch('/api/facultyRoleWeightage', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data.facultyRoleWeightages)
+      })
+
+      if (!weightageResponse.ok) {
+        throw new Error(`Failed to update weightages: ${weightageResponse.statusText}`)
+      }
+
+      const result = await createSemester(data)
+      if (result.status === 'ERROR') {
+        toast.error(result.message)
+      } else {
+        toast.success(result.message)
+        router.push(`/admin/semester?semester=${data.semesterName}`)
+        router.refresh()
+      }
+    } catch (error) {
+      console.error('Error creating semester:', error)
+      toast.error(error instanceof Error ? error.message : 'An error occurred while creating the semester')
     }
   }
 
@@ -131,6 +184,10 @@ export function CreateSemesterForm({ faculties }: CreateSemesterFormProps) {
     control: form.control
   })
 
+  if (isLoading) {
+    return <div>Loading...</div>
+  }
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -140,6 +197,7 @@ export function CreateSemesterForm({ faculties }: CreateSemesterFormProps) {
             <TabsTrigger value='timeline-setting'>Configure Timeline</TabsTrigger>
             <TabsTrigger value='programme-leader'>Programme Director (Delegate)</TabsTrigger>
             <TabsTrigger value='assessment-formats'>Assessment formats</TabsTrigger>
+            <TabsTrigger value='faculty-weightages'>Faculty Weightages</TabsTrigger>
           </TabsList>
           <TabsContent value='semester-setting' className='max-w-2xl space-y-6'>
             <FormField
@@ -457,6 +515,53 @@ export function CreateSemesterForm({ faculties }: CreateSemesterFormProps) {
                 </Button>
               </div>
             </div>
+          </TabsContent>
+          <TabsContent value='faculty-weightages' className='max-w-2xl space-y-6'>
+            <FormField
+              control={form.control}
+              name='facultyRoleWeightages.SUPERVISOR'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Supervisor Weightage (%)</FormLabel>
+                  <FormControl>
+                    <Input
+                      type='number'
+                      {...field}
+                      onChange={(e) => {
+                        const value = parseFloat(e.target.value)
+                        field.onChange(value)
+                        form.setValue('facultyRoleWeightages.MODERATOR', 100 - value)
+                      }}
+                    />
+                  </FormControl>
+                  <FormDescription>Weightage for the Supervisor role</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name='facultyRoleWeightages.MODERATOR'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Moderator Weightage (%)</FormLabel>
+                  <FormControl>
+                    <Input
+                      type='number'
+                      {...field}
+                      onChange={(e) => {
+                        const value = parseFloat(e.target.value)
+                        field.onChange(value)
+                        form.setValue('facultyRoleWeightages.SUPERVISOR', 100 - value)
+                      }}
+                    />
+                  </FormControl>
+                  <FormDescription>Weightage for the Moderator role</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormMessage>{form.formState.errors.facultyRoleWeightages?.root?.message}</FormMessage>
           </TabsContent>
         </Tabs>
 

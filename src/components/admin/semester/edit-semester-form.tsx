@@ -1,6 +1,6 @@
 'use client'
 import { Trash2 } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm, useFieldArray } from 'react-hook-form'
 import { toast } from 'sonner'
@@ -61,49 +61,47 @@ export function EditSemesterForm({
     name: 'assessmentFormats'
   })
 
-  // useEffect(() => {
-  //   // Fetch current weightages when component mounts
-  //   fetch('/api/weightage/route')
-  //     .then((res) => res.json())
-  //     .then((data) => {
-  //       const weightages = data.reduce((acc, item) => {
-  //         acc[item.role] = item.weightage
-  //         return acc
-  //       }, {})
-  //       form.setValue('facultyRoleWeightages', weightages)
-  //     })
-  //     .catch((error) => {
-  //       console.error('Error fetching weightages:', error)
-  //       toast.error('Failed to fetch current weightages')
-  //     })
-  // }, [form])
-
   async function onSubmit(data: ExtendedEditSemesterDataFormType) {
     setIsSubmitting(true)
+    console.log('Submitting form data:', data)
+
     try {
-      // Update faculty role weightages
-      const weightageResponse = await fetch('/api/facultyRoleWeightage', {
+      const weightageResponse = await fetch('/api/updateWeightages', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify(data.facultyRoleWeightages)
       })
 
+      console.log('Response status:', weightageResponse.status)
+      console.log('Response headers:', Object.fromEntries(weightageResponse.headers.entries()))
+
       if (!weightageResponse.ok) {
-        throw new Error('Failed to update weightages')
+        const responseText = await weightageResponse.text()
+        console.error('Full response:', responseText)
+        throw new Error(`Failed to update weightages: ${weightageResponse.status} ${weightageResponse.statusText}`)
       }
 
-      // Existing editSemester logic
-      const result = await editSemester(data)
-      if (result.status === 'ERROR') {
-        toast.error(result.message)
+      const weightageResult = await weightageResponse.json()
+      console.log('Weightages updated successfully:', weightageResult.data)
+
+      // Update semester details
+      const semesterResult = await editSemester(data)
+
+      if (semesterResult.status === 'ERROR') {
+        console.error('Error updating semester:', semesterResult.message)
+        toast.error(semesterResult.message)
       } else {
-        toast.success('Semester details and weightages updated successfully')
-        router.push(`/admin/semester?semester=${semesterName}`)
+        console.log('Semester updated successfully:', semesterResult)
+        toast.success('Semester details and weightages updated successfully!')
         router.refresh()
+        form.reset(data) // Reset form with new data
+        router.push(`/admin/semester?semester=${semesterName}`)
       }
     } catch (error) {
-      console.error('Error updating semester:', error)
-      toast.error('An error occurred while updating the semester')
+      console.error('Error updating semester and weightages:', error)
+      toast.error('Failed to update semester and weightages. Please try again.')
     } finally {
       setIsSubmitting(false)
     }
@@ -309,7 +307,15 @@ export function EditSemesterForm({
                 <FormItem>
                   <FormLabel>Supervisor Weightage (%)</FormLabel>
                   <FormControl>
-                    <Input type='number' {...field} onChange={(e) => field.onChange(e.target.valueAsNumber)} />
+                    <Input
+                      type='number'
+                      {...field}
+                      onChange={(e) => {
+                        const value = parseFloat(e.target.value)
+                        field.onChange(value)
+                        form.setValue('facultyRoleWeightages.MODERATOR', 100 - value)
+                      }}
+                    />
                   </FormControl>
                   <FormDescription>Weightage for the Supervisor role</FormDescription>
                   <FormMessage />
@@ -323,7 +329,15 @@ export function EditSemesterForm({
                 <FormItem>
                   <FormLabel>Moderator Weightage (%)</FormLabel>
                   <FormControl>
-                    <Input type='number' {...field} onChange={(e) => field.onChange(e.target.valueAsNumber)} />
+                    <Input
+                      type='number'
+                      {...field}
+                      onChange={(e) => {
+                        const value = parseFloat(e.target.value)
+                        field.onChange(value)
+                        form.setValue('facultyRoleWeightages.SUPERVISOR', 100 - value)
+                      }}
+                    />
                   </FormControl>
                   <FormDescription>Weightage for the Moderator role</FormDescription>
                   <FormMessage />
@@ -334,7 +348,9 @@ export function EditSemesterForm({
           </TabsContent>
         </Tabs>
 
-        <Button type='submit'>Submit</Button>
+        <Button type='submit' disabled={isSubmitting}>
+          {isSubmitting ? 'Updating...' : 'Submit'}
+        </Button>
 
         {/* Hidden form field for id */}
         <FormField
