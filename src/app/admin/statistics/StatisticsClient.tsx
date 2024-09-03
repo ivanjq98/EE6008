@@ -4,7 +4,6 @@ import React, { useMemo, useState, useEffect } from 'react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/src/components/ui/select'
 import { Card, CardContent, CardHeader, CardTitle } from '@/src/components/ui/card'
-import d3 from 'd3'
 
 type ScoreType = 'supervisor' | 'moderator' | 'weighted'
 
@@ -71,16 +70,6 @@ function createHistogramData(scores: number[], bins = 10) {
     binEnd: min + (index + 1) * binSize,
     count
   }))
-}
-
-function kernelDensityEstimator(kernel: (v: number) => number, X: number[]) {
-  return function (V: number[]) {
-    return X.map((x) => [x, d3.mean(V, (v) => kernel(x - v)) ?? 0])
-  }
-}
-
-function kernelEpanechnikov(k: number) {
-  return (v: number) => (Math.abs((v /= k)) <= 1 ? (0.75 * (1 - v * v)) / k : 0)
 }
 
 function isScoreObject(value: any): value is { supervisor: number; moderator: number; weighted: number } {
