@@ -29,13 +29,30 @@ async function getFacultyProjects(facultyId: string) {
       }
     },
     select: {
+      id: true,
       projectId: true,
       role: true
     }
   })
 }
 
-async function getStudentMarks(currentSemesterId: string, facultyProjects: { projectId: string; role: string }[]) {
+async function getStudentMarks(
+  currentSemesterId: string,
+  facultyId: string
+): Promise<{ formattedData: StudentMark[]; assessmentComponents: string[] }> {
+  const facultyProjects = await prisma.projectFaculty.findMany({
+    where: {
+      facultyId: facultyId,
+      role: {
+        in: ['SUPERVISOR', 'MODERATOR']
+      }
+    },
+    select: {
+      projectId: true,
+      role: true
+    }
+  })
+
   const projectIds = facultyProjects.map((fp) => fp.projectId)
 
   const studentMarks = await prisma.student.findMany({
@@ -51,12 +68,14 @@ async function getStudentMarks(currentSemesterId: string, facultyProjects: { pro
             include: {
               semester: true
             }
-          }
+          },
+          faculty: true
         },
         where: {
           semesterGradeType: {
             semesterId: currentSemesterId
-          }
+          },
+          facultyId: facultyId
         }
       }
     }
@@ -70,33 +89,33 @@ async function getStudentMarks(currentSemesterId: string, facultyProjects: { pro
     distinct: ['name']
   })
 
-  const formattedData: StudentMark[] = studentMarks.map((student) => {
-    const grades = assessmentComponents.reduce(
-      (acc, component) => {
-        const grade = student.Grade.find((g) => g.semesterGradeType.name === component.name)
-        acc[component.name] = grade?.score ?? 0
-        return acc
-      },
-      {} as Record<string, number>
-    )
+  const formattedData: StudentMark[] = studentMarks.flatMap((student) => {
+    return facultyProjects
+      .filter((fp) => fp.projectId === student.projectId)
+      .map((fp) => {
+        const grades = assessmentComponents.reduce(
+          (acc, component) => {
+            const grade = student.Grade.find((g) => g.semesterGradeType.name === component.name)
+            acc[component.name] = grade?.score ?? 0
+            return acc
+          },
+          {} as Record<string, number>
+        )
 
-    const totalScore = Object.values(grades).reduce((sum, score) => sum + score, 0)
-    const semester = student.Grade[0]?.semesterGradeType.semester.name || 'Unknown'
+        const totalScore = Object.values(grades).reduce((sum, score) => sum + score, 0)
+        const semester = student.Grade[0]?.semesterGradeType.semester.name || 'Unknown'
 
-    // Find the matching faculty project and get the role
-    const facultyProject = facultyProjects.find((fp) => fp.projectId === student.projectId)
-    const facultyRole = facultyProject ? facultyProject.role : 'Unknown'
-
-    return {
-      id: student.id,
-      name: student.user.name,
-      projectTitle: student.project?.title || 'Not Assigned',
-      projectId: student.projectId!,
-      semester,
-      ...grades,
-      totalScore,
-      facultyRole
-    }
+        return {
+          id: `${student.id}-${fp.role}`,
+          name: student.user.name,
+          projectTitle: student.project?.title || 'Not Assigned',
+          projectId: student.projectId!,
+          semester,
+          ...grades,
+          totalScore,
+          facultyRole: fp.role as FacultyRole
+        }
+      })
   })
 
   return { formattedData, assessmentComponents: assessmentComponents.map((c) => c.name) }
@@ -110,8 +129,7 @@ export default async function StudentMarksOverviewPage() {
   }
 
   const currentSemesterId = await getCurrentSemesterId()
-  const facultyProjects = await getFacultyProjects(session.user.facultyId)
-  const { formattedData, assessmentComponents } = await getStudentMarks(currentSemesterId, facultyProjects)
+  const { formattedData, assessmentComponents } = await getStudentMarks(currentSemesterId, session.user.facultyId)
 
   return (
     <div className='container mx-auto py-10'>
