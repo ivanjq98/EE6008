@@ -23,14 +23,23 @@ async function getStudentMarks(currentSemesterId: string) {
     },
     include: {
       user: true,
-      project: true,
+      project: {
+        include: {
+          faculties: {
+            include: {
+              faculty: true
+            }
+          }
+        }
+      },
       Grade: {
         include: {
           semesterGradeType: {
             include: {
               semester: true
             }
-          }
+          },
+          faculty: true
         },
         where: {
           semesterGradeType: {
@@ -49,17 +58,50 @@ async function getStudentMarks(currentSemesterId: string) {
     distinct: ['name']
   })
 
-  const formattedData: StudentMark[] = studentMarks.map((student) => {
-    const grades = assessmentComponents.reduce(
-      (acc, component) => {
-        const grade = student.Grade.find((g) => g.semesterGradeType.name === component.name)
-        acc[component.name] = grade?.score ?? 0
-        return acc
-      },
-      {} as Record<string, number>
-    )
+  const facultyRoleWeightages = await prisma.facultyRoleWeightage.findMany()
+  const weightageObj = facultyRoleWeightages.reduce(
+    (acc, curr) => {
+      acc[curr.role] = curr.weightage / 100 // Convert to decimal
+      return acc
+    },
+    {} as Record<string, number>
+  )
 
-    const totalScore = Object.values(grades).reduce((sum, score) => sum + score, 0)
+  const formattedData: StudentMark[] = studentMarks.map((student) => {
+    const grades = {} as Record<
+      string,
+      { supervisor: number | null; moderator: number | null; weighted: number | null }
+    >
+
+    assessmentComponents.forEach((component) => {
+      const supervisorGrade = student.Grade.find(
+        (g) =>
+          g.semesterGradeType.name === component.name &&
+          student.project?.faculties.some((pf) => pf.faculty.id === g.faculty.id && pf.role === 'SUPERVISOR')
+      )
+      const moderatorGrade = student.Grade.find(
+        (g) =>
+          g.semesterGradeType.name === component.name &&
+          student.project?.faculties.some((pf) => pf.faculty.id === g.faculty.id && pf.role === 'MODERATOR')
+      )
+
+      const supervisorScore = supervisorGrade?.score ?? null
+      const moderatorScore = moderatorGrade?.score ?? null
+
+      let weightedScore = null
+      if (supervisorScore !== null && moderatorScore !== null) {
+        weightedScore =
+          supervisorScore * (weightageObj['SUPERVISOR'] || 0.7) + moderatorScore * (weightageObj['MODERATOR'] || 0.3)
+      }
+
+      grades[component.name] = {
+        supervisor: supervisorScore,
+        moderator: moderatorScore,
+        weighted: weightedScore
+      }
+    })
+
+    const totalScore = Object.values(grades).reduce((sum, grade) => sum + (grade.weighted ?? 0), 0)
     const semester = student.Grade[0]?.semesterGradeType.semester.name || 'Unknown'
 
     return {

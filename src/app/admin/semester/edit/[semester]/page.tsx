@@ -39,6 +39,9 @@ const EditTimeline = async ({ params }: { params: { semester: string } }) => {
       }
     })
 
+    // Fetch faculty role weightages
+    const facultyRoleWeightages = await prisma.facultyRoleWeightage.findMany()
+
     sanitizedDefaultValues = {
       minimumGroupSize: data.minimumGroupSize,
       maximumGroupSize: data.maximumGroupSize,
@@ -68,7 +71,11 @@ const EditTimeline = async ({ params }: { params: { semester: string } }) => {
       assessmentFormats: gradeTypes.map((gradeType) => ({
         name: gradeType.name,
         weightage: gradeType.weightage
-      }))
+      })),
+      facultyRoleWeightages: {
+        SUPERVISOR: facultyRoleWeightages.find((w) => w.role === 'SUPERVISOR')?.weightage ?? 70,
+        MODERATOR: facultyRoleWeightages.find((w) => w.role === 'MODERATOR')?.weightage ?? 30
+      }
     }
   }
 

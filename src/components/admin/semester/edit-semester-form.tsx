@@ -1,6 +1,6 @@
 'use client'
 import { Trash2 } from 'lucide-react'
-
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm, useFieldArray } from 'react-hook-form'
 import { toast } from 'sonner'
@@ -24,17 +24,32 @@ import { EditSemesterDataFormSchema } from '@/src/lib/schema'
 import { zodResolver } from '@hookform/resolvers/zod'
 import SingleDateTimeFormInput from '../../ui/single-date-picker-input'
 
+const ExtendedEditSemesterDataFormSchema = EditSemesterDataFormSchema.extend({
+  facultyRoleWeightages: z
+    .object({
+      SUPERVISOR: z.number().min(0).max(100),
+      MODERATOR: z.number().min(0).max(100)
+    })
+    .refine((data) => data.SUPERVISOR + data.MODERATOR === 100, {
+      message: 'Weightages must add up to 100%'
+    })
+})
+
+type ExtendedEditSemesterDataFormType = z.infer<typeof ExtendedEditSemesterDataFormSchema>
+
 export function EditSemesterForm({
   defaultValues,
   semesterName
 }: {
-  defaultValues?: z.infer<typeof EditSemesterDataFormSchema>
+  defaultValues?: ExtendedEditSemesterDataFormType
   semesterName: string
 }) {
   const router = useRouter()
-  const form = useForm<z.infer<typeof EditSemesterDataFormSchema>>({
-    resolver: zodResolver(EditSemesterDataFormSchema),
-    defaultValues: defaultValues
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const form = useForm<ExtendedEditSemesterDataFormType>({
+    resolver: zodResolver(ExtendedEditSemesterDataFormSchema),
+    defaultValues
   })
 
   const {
@@ -46,14 +61,51 @@ export function EditSemesterForm({
     name: 'assessmentFormats'
   })
 
-  async function onSubmit(data: z.infer<typeof EditSemesterDataFormSchema>) {
-    const result = await editSemester(data)
-    if (result.status === 'ERROR') {
-      toast.error(result.message)
-    } else {
-      toast.success(result.message)
-      router.push(`/admin/semester?semester=${semesterName}`)
-      router.refresh()
+  useEffect(() => {
+    // Fetch current weightages when component mounts
+    fetch('/api/weightage/route')
+      .then((res) => res.json())
+      .then((data) => {
+        const weightages = data.reduce((acc, item) => {
+          acc[item.role] = item.weightage
+          return acc
+        }, {})
+        form.setValue('facultyRoleWeightages', weightages)
+      })
+      .catch((error) => {
+        console.error('Error fetching weightages:', error)
+        toast.error('Failed to fetch current weightages')
+      })
+  }, [form])
+
+  async function onSubmit(data: ExtendedEditSemesterDataFormType) {
+    setIsSubmitting(true)
+    try {
+      // Update faculty role weightages
+      const weightageResponse = await fetch('/api/facultyRoleWeightage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data.facultyRoleWeightages)
+      })
+
+      if (!weightageResponse.ok) {
+        throw new Error('Failed to update weightages')
+      }
+
+      // Existing editSemester logic
+      const result = await editSemester(data)
+      if (result.status === 'ERROR') {
+        toast.error(result.message)
+      } else {
+        toast.success('Semester details and weightages updated successfully')
+        router.push(`/admin/semester?semester=${semesterName}`)
+        router.refresh()
+      }
+    } catch (error) {
+      console.error('Error updating semester:', error)
+      toast.error('An error occurred while updating the semester')
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -65,6 +117,7 @@ export function EditSemesterForm({
             <TabsTrigger value='semester-setting'>Semester Setting</TabsTrigger>
             <TabsTrigger value='timeline-setting'>Configure Timeline</TabsTrigger>
             <TabsTrigger value='assessment-formats'>Assessment Formats</TabsTrigger>
+            <TabsTrigger value='faculty-weightages'>Faculty Weightages</TabsTrigger>
           </TabsList>
           <TabsContent value='semester-setting' className='max-w-2xl space-y-6'>
             <FormField
@@ -246,6 +299,38 @@ export function EditSemesterForm({
                 Add Assessment Format
               </Button>
             </div>
+          </TabsContent>
+
+          <TabsContent value='faculty-weightages' className='max-w-2xl space-y-6'>
+            <FormField
+              control={form.control}
+              name='facultyRoleWeightages.SUPERVISOR'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Supervisor Weightage (%)</FormLabel>
+                  <FormControl>
+                    <Input type='number' {...field} onChange={(e) => field.onChange(e.target.valueAsNumber)} />
+                  </FormControl>
+                  <FormDescription>Weightage for the Supervisor role</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name='facultyRoleWeightages.MODERATOR'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Moderator Weightage (%)</FormLabel>
+                  <FormControl>
+                    <Input type='number' {...field} onChange={(e) => field.onChange(e.target.valueAsNumber)} />
+                  </FormControl>
+                  <FormDescription>Weightage for the Moderator role</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormMessage>{form.formState.errors.facultyRoleWeightages?.root?.message}</FormMessage>
           </TabsContent>
         </Tabs>
 

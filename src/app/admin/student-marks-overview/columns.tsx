@@ -1,54 +1,51 @@
-'use client'
-
-import { ColumnDef, SortingFn } from '@tanstack/react-table'
-import { useMemo } from 'react'
+import { ColumnDef } from '@tanstack/react-table'
 
 export type StudentMark = {
   id: string
   name: string
   projectTitle: string
-  // semester: string
+  semester: string
   totalScore: number
-  [key: string]: string | number
+  [key: string]: string | number | { supervisor: number | null; moderator: number | null; weighted: number | null }
 }
 
-export function useColumns(assessmentComponents: string[]): ColumnDef<StudentMark>[] {
-  return useMemo(
-    () => [
-      {
-        accessorKey: 'name',
-        header: 'Student Name',
-        sortingFn: 'alphanumeric' as const
-      },
-      {
-        accessorKey: 'projectTitle',
-        header: 'Project Name',
-        sortingFn: 'alphanumeric' as const
-      },
-      // {
-      //   accessorKey: 'semester',
-      //   header: 'Semester',
-      //   sortingFn: 'alphanumeric' as const
-      // },
-      ...assessmentComponents.map((component) => ({
-        accessorKey: component,
-        header: component,
-        cell: ({ row }) => {
-          const score = row.getValue(component) as number
-          return <div className='text-right font-medium'>{score.toFixed(2)}</div>
-        },
-        sortingFn: 'alphanumeric' as const
-      })),
-      {
-        accessorKey: 'totalScore',
-        header: 'Final Score',
-        cell: ({ row }) => {
-          const score = row.getValue('totalScore') as number
-          return <div className='text-right font-medium'>{score.toFixed(2)}</div>
-        },
-        sortingFn: 'alphanumeric' as const
+export const useColumns = (assessmentComponents: string[]): ColumnDef<StudentMark>[] => [
+  {
+    accessorKey: 'name',
+    header: 'Student Name'
+  },
+  {
+    accessorKey: 'projectTitle',
+    header: 'Project Title'
+  },
+  {
+    accessorKey: 'semester',
+    header: 'Semester'
+  },
+  ...assessmentComponents.map((component) => ({
+    accessorKey: component,
+    header: component,
+    cell: ({ row }) => {
+      const grades = row.getValue(component) as {
+        supervisor: number | null
+        moderator: number | null
+        weighted: number | null
       }
-    ],
-    [assessmentComponents]
-  )
-}
+      return (
+        <div className='space-y-1'>
+          <div>Supervisor: {grades.supervisor !== null ? grades.supervisor.toFixed(2) : 'N/A'}</div>
+          <div>Moderator: {grades.moderator !== null ? grades.moderator.toFixed(2) : 'N/A'}</div>
+          <div>Weighted: {grades.weighted !== null ? grades.weighted.toFixed(2) : 'N/A'}</div>
+        </div>
+      )
+    }
+  })),
+  {
+    accessorKey: 'totalScore',
+    header: 'Total Score',
+    cell: ({ row }) => {
+      const score = row.getValue('totalScore') as number
+      return <div className='text-right font-medium'>{score.toFixed(2)}</div>
+    }
+  }
+]

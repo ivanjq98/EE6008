@@ -16,18 +16,19 @@ export function ClientDataTable({ assessmentComponents, data }: ClientDataTableP
   const [nameFilter, setNameFilter] = useState('')
   const [semesterFilter, setSemesterFilter] = useState('')
 
-  const semesters = useMemo(() => {
-    const uniqueSemesters = new Set(data.map((item) => item.semester))
-    return Array.from(uniqueSemesters).sort()
-  }, [data])
-
   const filteredData = useMemo(() => {
     return data.filter((item) => {
       const nameMatch = item.name.toLowerCase().includes(nameFilter.toLowerCase())
-      const semesterMatch = semesterFilter === '' || item.semester === semesterFilter
+      const semesterMatch =
+        semesterFilter === '' || semesterFilter === 'all' || String(item.semester) === semesterFilter
       return nameMatch && semesterMatch
     })
   }, [data, nameFilter, semesterFilter])
+
+  const semesters = useMemo(() => {
+    const uniqueSemesters = new Set(data.map((item) => String(item.semester)))
+    return Array.from(uniqueSemesters).sort()
+  }, [data])
 
   return (
     <div>
@@ -43,7 +44,7 @@ export function ClientDataTable({ assessmentComponents, data }: ClientDataTableP
             <SelectValue placeholder='Select a semester' />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value='all'>All Semesters</SelectItem> {/* Change the value to "all" */}
+            <SelectItem value='all'>All Semesters</SelectItem>
             {semesters.map((semester) => (
               <SelectItem key={semester} value={semester}>
                 {semester}
@@ -52,7 +53,7 @@ export function ClientDataTable({ assessmentComponents, data }: ClientDataTableP
           </SelectContent>
         </Select>
       </div>
-      <DataTable columns={columns} data={filteredData} />
+      {filteredData.length > 0 ? <DataTable columns={columns} data={filteredData} /> : <p>No data available.</p>}
     </div>
   )
 }

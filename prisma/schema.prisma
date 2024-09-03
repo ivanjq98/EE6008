@@ -281,6 +281,16 @@ model ProjectFaculty {
   @@unique([projectId, facultyId])
 }
 
+model FacultyRoleWeightage {
+  id        String      @id @default(uuid())
+  role      FacultyRole
+  weightage Float
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  @@unique([role])
+}
+
 enum FacultyRole {
   SUPERVISOR
   MODERATOR
