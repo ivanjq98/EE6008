@@ -2,6 +2,7 @@ import { Suspense } from 'react'
 import { prisma } from '@/src/lib/prisma'
 import { StudentMark } from './columns'
 import { ClientDataTable } from './ClientDataTable'
+import StudentMarksOverviewPage from './overviewDownload'
 
 async function getCurrentSemesterId() {
   const currentSemester = await prisma.semester.findFirst({
@@ -117,7 +118,7 @@ async function getStudentMarks(currentSemesterId: string) {
   return { formattedData, assessmentComponents: assessmentComponents.map((c) => c.name) }
 }
 
-export default async function StudentMarksOverviewPage() {
+export default async function StudentMarksOverviewPageWrapper() {
   const currentSemesterId = await getCurrentSemesterId()
   const { formattedData, assessmentComponents } = await getStudentMarks(currentSemesterId)
 
@@ -125,7 +126,7 @@ export default async function StudentMarksOverviewPage() {
     <div className='container mx-auto py-10'>
       <h1 className='mb-5 text-2xl font-bold'>Student Marks Overview</h1>
       <Suspense fallback={<div>Loading...</div>}>
-        <ClientDataTable assessmentComponents={assessmentComponents} data={formattedData} />
+        <StudentMarksOverviewPage formattedData={formattedData} assessmentComponents={assessmentComponents} />
       </Suspense>
     </div>
   )

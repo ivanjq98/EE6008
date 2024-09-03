@@ -61,22 +61,22 @@ export function EditSemesterForm({
     name: 'assessmentFormats'
   })
 
-  useEffect(() => {
-    // Fetch current weightages when component mounts
-    fetch('/api/weightage/route')
-      .then((res) => res.json())
-      .then((data) => {
-        const weightages = data.reduce((acc, item) => {
-          acc[item.role] = item.weightage
-          return acc
-        }, {})
-        form.setValue('facultyRoleWeightages', weightages)
-      })
-      .catch((error) => {
-        console.error('Error fetching weightages:', error)
-        toast.error('Failed to fetch current weightages')
-      })
-  }, [form])
+  // useEffect(() => {
+  //   // Fetch current weightages when component mounts
+  //   fetch('/api/weightage/route')
+  //     .then((res) => res.json())
+  //     .then((data) => {
+  //       const weightages = data.reduce((acc, item) => {
+  //         acc[item.role] = item.weightage
+  //         return acc
+  //       }, {})
+  //       form.setValue('facultyRoleWeightages', weightages)
+  //     })
+  //     .catch((error) => {
+  //       console.error('Error fetching weightages:', error)
+  //       toast.error('Failed to fetch current weightages')
+  //     })
+  // }, [form])
 
   async function onSubmit(data: ExtendedEditSemesterDataFormType) {
     setIsSubmitting(true)
