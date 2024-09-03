@@ -8,7 +8,8 @@ import { UpdateStudentGradeFormSchema } from '@/src/lib/schema'
 
 export async function updateStudentGrade(
   data: z.infer<typeof UpdateStudentGradeFormSchema>,
-  semesterGradeTypeId: string
+  semesterGradeTypeId: string,
+  facultyRole: string
 ) {
   const schema = z.object({
     studentGrades: z.array(

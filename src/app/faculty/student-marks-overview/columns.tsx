@@ -3,13 +3,16 @@
 import { ColumnDef, SortingFn } from '@tanstack/react-table'
 import { useMemo } from 'react'
 
+export type FacultyRole = 'SUPERVISOR' | 'MODERATOR' | 'NO_ROLE' // Keep NO_ROLE for now to match existing data
+
 export type StudentMark = {
   id: string
   name: string
   projectTitle: string
   // semester: string
   totalScore: number
-  [key: string]: string | number
+  facultyRole: FacultyRole | string
+  [key: string]: string | number | FacultyRole
 }
 
 export function useColumns(assessmentComponents: string[]): ColumnDef<StudentMark>[] {
@@ -47,6 +50,15 @@ export function useColumns(assessmentComponents: string[]): ColumnDef<StudentMar
           return <div className='text-right font-medium'>{score.toFixed(2)}</div>
         },
         sortingFn: 'alphanumeric' as const
+      },
+      {
+        accessorKey: 'facultyRole',
+        header: 'Faculty Role',
+        sortingFn: 'alphanumeric' as const,
+        cell: ({ row }) => {
+          const role = row.getValue('facultyRole') as string
+          return <div className='capitalize'>{role.toLowerCase()}</div>
+        }
       }
     ],
     [assessmentComponents]

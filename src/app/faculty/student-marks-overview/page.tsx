@@ -2,6 +2,10 @@ import { Suspense } from 'react'
 import { prisma } from '@/src/lib/prisma'
 import { StudentMark } from './columns'
 import { ClientDataTable } from './ClientDataTable'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/src/lib/auth'
+import { redirect } from 'next/navigation'
+import { FacultyRole } from './columns'
 
 async function getCurrentSemesterId() {
   const currentSemester = await prisma.semester.findFirst({
@@ -16,10 +20,27 @@ async function getCurrentSemesterId() {
   return currentSemester.id
 }
 
-async function getStudentMarks(currentSemesterId: string) {
+async function getFacultyProjects(facultyId: string) {
+  return await prisma.projectFaculty.findMany({
+    where: {
+      facultyId: facultyId,
+      role: {
+        in: ['SUPERVISOR', 'MODERATOR']
+      }
+    },
+    select: {
+      projectId: true,
+      role: true
+    }
+  })
+}
+
+async function getStudentMarks(currentSemesterId: string, facultyProjects: { projectId: string; role: string }[]) {
+  const projectIds = facultyProjects.map((fp) => fp.projectId)
+
   const studentMarks = await prisma.student.findMany({
     where: {
-      projectId: { not: null }
+      projectId: { in: projectIds }
     },
     include: {
       user: true,
@@ -62,13 +83,19 @@ async function getStudentMarks(currentSemesterId: string) {
     const totalScore = Object.values(grades).reduce((sum, score) => sum + score, 0)
     const semester = student.Grade[0]?.semesterGradeType.semester.name || 'Unknown'
 
+    // Find the matching faculty project and get the role
+    const facultyProject = facultyProjects.find((fp) => fp.projectId === student.projectId)
+    const facultyRole = facultyProject ? facultyProject.role : 'Unknown'
+
     return {
       id: student.id,
       name: student.user.name,
       projectTitle: student.project?.title || 'Not Assigned',
+      projectId: student.projectId!,
       semester,
       ...grades,
-      totalScore
+      totalScore,
+      facultyRole
     }
   })
 
@@ -76,8 +103,15 @@ async function getStudentMarks(currentSemesterId: string) {
 }
 
 export default async function StudentMarksOverviewPage() {
+  const session = await getServerSession(authOptions)
+
+  if (!session || !session.user.facultyId) {
+    redirect('/login')
+  }
+
   const currentSemesterId = await getCurrentSemesterId()
-  const { formattedData, assessmentComponents } = await getStudentMarks(currentSemesterId)
+  const facultyProjects = await getFacultyProjects(session.user.facultyId)
+  const { formattedData, assessmentComponents } = await getStudentMarks(currentSemesterId, facultyProjects)
 
   return (
     <div className='container mx-auto py-10'>
