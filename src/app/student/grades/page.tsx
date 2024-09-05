@@ -6,7 +6,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Alert, AlertDescription, AlertTitle } from '@/src/components/ui/alert'
 import { InfoIcon } from 'lucide-react'
 import { format } from 'date-fns'
-import { getStudentGradesAndTimeline } from './getStudentGradesAndTimeline'
 import { Grade, GradeType, Semester, SemesterTimeline } from '@prisma/client'
 import { prisma } from '@/src/lib/prisma'
 
@@ -18,23 +17,27 @@ export default async function StudentGradesPage() {
   }
 
   const studentId = session.user.id
-  // const { gradesArray, semester } = await getStudentGradesAndTimeline(studentId)
 
-  // console.log('Grades Array', gradesArray) // Log the grades here
-  // console.log('Semester', semester) // Log the grades here
-
-  const results = await prisma.student.findUnique({
+  const student = await prisma.student.findUnique({
     where: { id: session.user.studentId },
     include: {
       Grade: {
         include: {
-          semesterGradeType: true // This will include the GradeType information
+          semesterGradeType: true,
+          faculty: true
+        }
+      },
+      project: {
+        include: {
+          faculties: {
+            include: {
+              faculty: true
+            }
+          }
         }
       }
     }
   })
-
-  console.log('ivan; ivan_test', results)
 
   const semester = await prisma.semester.findFirst({
     where: {
@@ -51,24 +54,76 @@ export default async function StudentGradesPage() {
     }
   })
 
-  const gradesArray = results?.Grade.map((grade) => ({
-    id: grade.id,
-    score: grade.score,
-    semesterGradeTypeId: grade.semesterGradeType.name,
-    weightage: grade.semesterGradeType.weightage
-  }))
+  const PASS_THRESHOLD = 50 // Adjust this value as needed
+
+  const facultyRoleWeightages = await prisma.facultyRoleWeightage.findMany()
+  const weightageObj = facultyRoleWeightages.reduce(
+    (acc, curr) => {
+      acc[curr.role] = curr.weightage / 100 // Convert to decimal
+      return acc
+    },
+    {} as Record<string, number>
+  )
+
+  const gradesArray =
+    student?.Grade.reduce(
+      (acc, grade) => {
+        const existingGrade = acc.find((g) => g.semesterGradeTypeId === grade.semesterGradeType.name)
+
+        if (existingGrade) {
+          if (student.project?.faculties.some((pf) => pf.faculty.id === grade.faculty.id && pf.role === 'SUPERVISOR')) {
+            existingGrade.supervisorScore = grade.score
+          } else if (
+            student.project?.faculties.some((pf) => pf.faculty.id === grade.faculty.id && pf.role === 'MODERATOR')
+          ) {
+            existingGrade.moderatorScore = grade.score
+          }
+
+          if (existingGrade.supervisorScore !== null && existingGrade.moderatorScore !== null) {
+            const weightedScore =
+              existingGrade.supervisorScore * (weightageObj['SUPERVISOR'] || 0.7) +
+              existingGrade.moderatorScore * (weightageObj['MODERATOR'] || 0.3)
+
+            existingGrade.combinedScore = weightedScore
+            // Calculate percentage score based on weightage
+            const percentageScore = (weightedScore / grade.semesterGradeType.weightage) * 100
+            existingGrade.status = percentageScore >= PASS_THRESHOLD ? 'Pass' : 'Fail'
+          }
+        } else {
+          acc.push({
+            id: grade.id,
+            semesterGradeTypeId: grade.semesterGradeType.name,
+            weightage: grade.semesterGradeType.weightage,
+            supervisorScore: student.project?.faculties.some(
+              (pf) => pf.faculty.id === grade.faculty.id && pf.role === 'SUPERVISOR'
+            )
+              ? grade.score
+              : null,
+            moderatorScore: student.project?.faculties.some(
+              (pf) => pf.faculty.id === grade.faculty.id && pf.role === 'MODERATOR'
+            )
+              ? grade.score
+              : null,
+            combinedScore: null,
+            status: 'Pending'
+          })
+        }
+
+        return acc
+      },
+      [] as Array<{
+        id: string
+        semesterGradeTypeId: string
+        weightage: number
+        supervisorScore: number | null
+        moderatorScore: number | null
+        combinedScore: number | null
+        status: 'Pass' | 'Fail' | 'Pending'
+      }>
+    ) || []
 
   const currentDate = new Date()
   const resultReleaseDate = semester?.timeline?.studentResultRelease
-
-  const getScoreLabel = (score: number, weightage: number) => {
-    const normalizedScore = (score / weightage) * 100
-    if (normalizedScore >= 80) return 'A'
-    if (normalizedScore >= 70) return 'B'
-    if (normalizedScore >= 60) return 'C'
-    if (normalizedScore >= 50) return 'D'
-    return 'F'
-  }
 
   return (
     <div className='container mx-auto py-10'>
@@ -99,7 +154,7 @@ export default async function StudentGradesPage() {
             </AlertDescription>
           </Alert>
 
-          {!gradesArray || gradesArray.length === 0 ? (
+          {gradesArray.length === 0 ? (
             <Card>
               <CardContent className='pt-6'>
                 <p>No grade information is available at this time.</p>
@@ -116,8 +171,7 @@ export default async function StudentGradesPage() {
                     <TableRow>
                       <TableHead>Assessment Component</TableHead>
                       <TableHead>Weightage</TableHead>
-                      <TableHead>Score</TableHead>
-                      <TableHead>Grade</TableHead>
+                      <TableHead>Status</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -125,10 +179,7 @@ export default async function StudentGradesPage() {
                       <TableRow key={grade.id}>
                         <TableCell>{grade.semesterGradeTypeId}</TableCell>
                         <TableCell>{grade.weightage}%</TableCell>
-                        <TableCell>{grade.score !== null ? grade.score.toString() : 'Pending'}</TableCell>
-                        <TableCell>
-                          {grade.score !== null ? getScoreLabel(grade.score, grade.weightage) : 'Pending'}
-                        </TableCell>{' '}
+                        <TableCell>{grade.status}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>

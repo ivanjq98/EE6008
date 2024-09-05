@@ -23,25 +23,22 @@ export const getStudentGradesAndTimeline = async (studentId: string) => {
                 }
               }
             }
-          }
+          },
+          faculty: true
         },
         orderBy: [{ semesterGradeType: { semester: { name: 'desc' } } }, { semesterGradeType: { name: 'asc' } }]
-      }
-    }
-  })
-
-  const results = await prisma.student.findUnique({
-    where: { id: 'b7c95900-5b48-4218-8b91-40a78abfbfbc' },
-    include: {
-      Grade: {
+      },
+      project: {
         include: {
-          semesterGradeType: true // This will include the GradeType information
+          faculties: {
+            include: {
+              faculty: true
+            }
+          }
         }
       }
     }
   })
-
-  console.log('xinruixgao; results', results)
 
   const semester = await prisma.semester.findFirst({
     where: {
@@ -58,30 +55,74 @@ export const getStudentGradesAndTimeline = async (studentId: string) => {
     }
   })
 
-  const gradesArray = results?.Grade.map((grade) => ({
-    id: grade.id,
-    score: grade.score,
-    semesterGradeTypeId: grade.semesterGradeType.name,
-    weightage: grade.semesterGradeType.weightage
-  }))
+  const PASS_THRESHOLD = 50 // Adjust this value as needed
 
-  console.log('xinruixgao; gradesArray test', gradesArray)
+  const facultyRoleWeightages = await prisma.facultyRoleWeightage.findMany()
+  const weightageObj = facultyRoleWeightages.reduce(
+    (acc, curr) => {
+      acc[curr.role] = curr.weightage / 100 // Convert to decimal
+      return acc
+    },
+    {} as Record<string, number>
+  )
+
+  const gradesArray =
+    student?.Grade.reduce(
+      (acc, grade) => {
+        const existingGrade = acc.find((g) => g.semesterGradeTypeId === grade.semesterGradeType.name)
+
+        if (existingGrade) {
+          if (student.project?.faculties.some((pf) => pf.faculty.id === grade.faculty.id && pf.role === 'SUPERVISOR')) {
+            existingGrade.supervisorScore = grade.score
+          } else if (
+            student.project?.faculties.some((pf) => pf.faculty.id === grade.faculty.id && pf.role === 'MODERATOR')
+          ) {
+            existingGrade.moderatorScore = grade.score
+          }
+
+          if (existingGrade.supervisorScore !== null && existingGrade.moderatorScore !== null) {
+            const weightedScore =
+              existingGrade.supervisorScore * (weightageObj['SUPERVISOR'] || 0.7) +
+              existingGrade.moderatorScore * (weightageObj['MODERATOR'] || 0.3)
+
+            existingGrade.combinedScore = weightedScore
+            const percentageScore = (weightedScore / existingGrade.weightage) * 100
+            existingGrade.status = percentageScore >= PASS_THRESHOLD ? 'Pass' : 'Fail'
+          }
+        } else {
+          acc.push({
+            id: grade.id,
+            semesterGradeTypeId: grade.semesterGradeType.name,
+            weightage: grade.semesterGradeType.weightage,
+            supervisorScore: student.project?.faculties.some(
+              (pf) => pf.faculty.id === grade.faculty.id && pf.role === 'SUPERVISOR'
+            )
+              ? grade.score
+              : null,
+            moderatorScore: student.project?.faculties.some(
+              (pf) => pf.faculty.id === grade.faculty.id && pf.role === 'MODERATOR'
+            )
+              ? grade.score
+              : null,
+            combinedScore: null,
+            status: 'Pending'
+          })
+        }
+
+        return acc
+      },
+      [] as Array<{
+        id: string
+        semesterGradeTypeId: string
+        weightage: number
+        supervisorScore: number | null
+        moderatorScore: number | null
+        combinedScore: number | null
+        status: 'Pass' | 'Fail' | 'Pending'
+      }>
+    ) || []
 
   const studentResultRelease = semester?.timeline?.studentResultRelease
-
-  if (studentResultRelease) {
-    const formattedDate = studentResultRelease.toISOString().split('T')[0]
-    console.log('ivan; studentResultRelease', formattedDate)
-  } else {
-    console.log('ivan; studentResultRelease not found')
-  }
-  if (!student || !semester) {
-    return { gradesBySemester: {}, resultReleaseDate: null }
-  }
-
-  const resultReleaseDate = semester.timeline?.studentResultRelease ?? null
-
-  console.log('ivan; semesterGradeTest', resultReleaseDate)
 
   return { gradesArray, semester }
 }
