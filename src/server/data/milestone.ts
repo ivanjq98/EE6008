@@ -113,3 +113,15 @@ export async function fetchMilestones(projectId: string) {
     throw error
   }
 }
+
+export async function deleteMilestone(milestoneId: string) {
+  try {
+    await prisma.milestone.delete({
+      where: { id: milestoneId }
+    })
+    return { status: 'SUCCESS', message: 'Milestone deleted successfully' }
+  } catch (error) {
+    console.error('Error deleting milestone:', error)
+    return { status: 'ERROR', message: 'Failed to delete milestone' }
+  }
+}

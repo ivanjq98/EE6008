@@ -15,12 +15,12 @@ export function GanttChart({ milestones, startDate, endDate }: GanttChartProps) 
   const [chartData, setChartData] = useState<any[]>([])
 
   const statusColors: { [key: string]: string } = {
+    NOT_STARTED: '#fb0509',
     STARTED: '#FFA500',
     NEARLY_HALF: '#b0b011',
     HALF_WAY_THERE: '#5bcd32',
     ALMOST_DONE: '#00d162',
-    COMPLETED: '#009717',
-    NOT_STARTED: '#fb0509'
+    COMPLETED: '#009717'
   }
 
   const defaultColor = '#808080' // Gray color for unknown status

@@ -54,7 +54,7 @@ export default async function StudentGradesPage() {
     }
   })
 
-  const PASS_THRESHOLD = 50 // Adjust this value as needed
+  const PASS_THRESHOLD = 60 // Adjust this value as needed
 
   const facultyRoleWeightages = await prisma.facultyRoleWeightage.findMany()
   const weightageObj = facultyRoleWeightages.reduce(

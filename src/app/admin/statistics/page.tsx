@@ -56,9 +56,9 @@ export default async function StatisticsPage() {
             }
 
             const role = grade.faculty.ProjectFaculty[0]?.role
-            if (role === 'SUPERVISOR') {
+            if (role === 'MODERATOR') {
               acc[componentName].supervisor = grade.score || 0
-            } else if (role === 'MODERATOR') {
+            } else if (role === 'SUPERVISOR') {
               acc[componentName].moderator = grade.score || 0
             }
 

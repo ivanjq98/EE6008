@@ -1,14 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { toast } from 'sonner'
-import { createRemark } from '@/src/server/data/remark'
+import { createRemark, updateRemark, fetchRemarkByMilestoneId } from '@/src/server/data/remark'
 
-// Define the form schema
 const RemarkFormSchema = z.object({
   remarks: z.string().min(1, 'Remark is required').max(500, 'Remark must be 500 characters or less')
 })
@@ -19,9 +18,21 @@ interface FacultyRemarkFormProps {
   milestoneId: string
 }
 
+// Define a type for the remark data
+type RemarkData = {
+  id: string
+  remarks: string
+  milestoneId: string
+  facultyId: string
+  createdAt: Date
+  updatedAt: Date
+}
+
 export function FacultyRemarkForm({ milestoneId }: FacultyRemarkFormProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [existingRemark, setExistingRemark] = useState<RemarkData | null>(null)
+  const [isEditing, setIsEditing] = useState(false)
 
   const form = useForm<RemarkFormData>({
     resolver: zodResolver(RemarkFormSchema),
@@ -30,32 +41,71 @@ export function FacultyRemarkForm({ milestoneId }: FacultyRemarkFormProps) {
     }
   })
 
+  useEffect(() => {
+    fetchExistingRemark()
+  }, [milestoneId])
+
+  async function fetchExistingRemark() {
+    try {
+      const remark = await fetchRemarkByMilestoneId(milestoneId)
+      if (remark) {
+        setExistingRemark(remark)
+        form.setValue('remarks', remark.remarks)
+      }
+    } catch (error) {
+      console.error('Error fetching existing remark:', error)
+      toast.error('Failed to load existing remark. Please try again.')
+    }
+  }
+
   async function onSubmit(data: RemarkFormData) {
     setIsSubmitting(true)
     try {
-      console.log('Submitting remark:', { ...data, milestoneId })
-      const result = await createRemark({ ...data, milestoneId })
+      let result
+      if (existingRemark) {
+        result = await updateRemark(existingRemark.id, { remarks: data.remarks })
+      } else {
+        result = await createRemark({ remarks: data.remarks, milestoneId })
+      }
 
       if (result.status === 'ERROR') {
         toast.error(result.message)
       } else {
-        toast.success('Remark submitted successfully')
+        toast.success(existingRemark ? 'Remark updated successfully' : 'Remark submitted successfully')
         form.reset()
         router.refresh()
+        setIsEditing(false)
+        if (!existingRemark && result.data) {
+          setExistingRemark(result.data as RemarkData)
+        }
       }
     } catch (error) {
       console.error('Error submitting remark:', error)
-      toast.error('Failed to submit remark. Please try again.')
+      toast.error(`Failed to ${existingRemark ? 'update' : 'submit'} remark. Please try again.`)
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  if (existingRemark && !isEditing) {
+    return (
+      <div className='mt-4'>
+        <p className='text-sm text-gray-600'>{existingRemark.remarks}</p>
+        <button
+          onClick={() => setIsEditing(true)}
+          className='mt-2 inline-flex justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2'
+        >
+          Edit Remark
+        </button>
+      </div>
+    )
   }
 
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className='mt-4 space-y-4'>
       <div>
         <label htmlFor='remarks' className='block text-sm font-medium text-gray-700'>
-          Remarks
+          Remark
         </label>
         <textarea
           id='remarks'
@@ -72,8 +122,20 @@ export function FacultyRemarkForm({ milestoneId }: FacultyRemarkFormProps) {
         disabled={isSubmitting}
         className='inline-flex justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2'
       >
-        {isSubmitting ? 'Submitting...' : 'Submit Remark'}
+        {isSubmitting ? 'Submitting...' : existingRemark ? 'Update Remark' : 'Submit Remark'}
       </button>
+      {isEditing && (
+        <button
+          type='button'
+          onClick={() => {
+            form.reset({ remarks: existingRemark?.remarks || '' })
+            setIsEditing(false)
+          }}
+          className='ml-2 inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2'
+        >
+          Cancel
+        </button>
+      )}
     </form>
   )
 }
