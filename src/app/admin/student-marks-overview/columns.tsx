@@ -1,4 +1,4 @@
-import { ColumnDef } from '@tanstack/react-table'
+import { ColumnDef, Row } from '@tanstack/react-table'
 
 export type StudentMark = {
   id: string
@@ -25,7 +25,7 @@ export const useColumns = (assessmentComponents: string[]): ColumnDef<StudentMar
   ...assessmentComponents.map((component) => ({
     accessorKey: component,
     header: component,
-    cell: ({ row }) => {
+    cell: ({ row }: { row: Row<StudentMark> }) => {
       const grades = row.getValue(component) as {
         supervisor: number | null
         moderator: number | null
@@ -40,10 +40,11 @@ export const useColumns = (assessmentComponents: string[]): ColumnDef<StudentMar
       )
     }
   })),
+
   {
     accessorKey: 'totalScore',
     header: 'Total Score',
-    cell: ({ row }) => {
+    cell: ({ row }: { row: Row<StudentMark> }) => {
       const score = row.getValue('totalScore') as number
       return <div className='text-right font-medium'>{score.toFixed(2)}</div>
     }

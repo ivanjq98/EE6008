@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { Chart } from 'react-google-charts'
 import { Milestone } from '@prisma/client'
 
@@ -14,14 +14,17 @@ export function GanttChart({ milestones, startDate, endDate }: GanttChartProps) 
   const [error, setError] = useState<string | null>(null)
   const [chartData, setChartData] = useState<any[]>([])
 
-  const statusColors: { [key: string]: string } = {
-    STARTED: '#FFA500',
-    NEARLY_HALF: '#b0b011',
-    HALF_WAY_THERE: '#5bcd32',
-    ALMOST_DONE: '#00d162',
-    COMPLETED: '#009717',
-    NOT_STARTED: '#fb0509'
-  }
+  const statusColors = useMemo(
+    () => ({
+      STARTED: '#FFA500',
+      NEARLY_HALF: '#b0b011',
+      HALF_WAY_THERE: '#5bcd32',
+      ALMOST_DONE: '#00d162',
+      COMPLETED: '#009717',
+      NOT_STARTED: '#fb0509'
+    }),
+    []
+  )
 
   const defaultColor = '#808080' // Gray color for unknown status
 
