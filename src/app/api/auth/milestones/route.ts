@@ -1,4 +1,3 @@
-// src/app/api/milestones/route.ts
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/src/lib/auth'
@@ -28,11 +27,10 @@ export async function POST(request: Request) {
 
     const milestone = await createMilestone({
       projectId,
-      studentId: session.user.studentId,
       objective,
       description,
-      startDate: new Date(startDate),
-      endDate: new Date(endDate),
+      startDate: new Date(startDate).toISOString(),
+      endDate: new Date(endDate).toISOString(),
       status
     })
 
