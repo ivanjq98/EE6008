@@ -33,9 +33,7 @@ const SingleDateTimeFormInput: React.FC<SingleDateTimeFormInputProps> = ({ value
           selected={value}
           onSelect={(date) => {
             if (date) {
-              // If a date is selected, use it; otherwise, use current date
-              const newDate = date || new Date()
-              // Preserve the time if value exists, otherwise set to current time
+              const newDate = date
               if (value) {
                 newDate.setHours(value.getHours())
                 newDate.setMinutes(value.getMinutes())
@@ -51,11 +49,14 @@ const SingleDateTimeFormInput: React.FC<SingleDateTimeFormInputProps> = ({ value
         <div className='border-t border-border p-3'>
           <TimePicker
             setDate={(date) => {
-              const newDate = value ? new Date(value) : new Date()
-              newDate.setHours(date.getHours())
-              newDate.setMinutes(date.getMinutes())
-              newDate.setSeconds(date.getSeconds())
-              onChange(newDate)
+              if (date) {
+                // Add this check
+                const newDate = value ? new Date(value) : new Date()
+                newDate.setHours(date.getHours())
+                newDate.setMinutes(date.getMinutes())
+                newDate.setSeconds(date.getSeconds())
+                onChange(newDate)
+              }
             }}
             date={value || new Date()} // Provide a default date if value is undefined
           />
