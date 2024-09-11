@@ -35,7 +35,7 @@ export default async function FacultyProjectStudentsPage({ params }: PageProps) 
   })
 
   if (!project) {
-    return <div className='container mx-auto p-4'>Project not found or you don't have access to it.</div>
+    return <div className='container mx-auto p-4'>Project not found or you don&apos;t have access to it.</div>
   }
 
   return (

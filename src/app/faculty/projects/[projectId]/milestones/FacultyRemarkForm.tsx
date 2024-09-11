@@ -52,7 +52,7 @@ export function FacultyRemarkForm({ milestoneId }: FacultyRemarkFormProps) {
       console.error('Error fetching existing remark:', error)
       toast.error('Failed to load existing remark. Please try again.')
     }
-  }, [milestoneId, form, fetchRemarkByMilestoneId])
+  }, [milestoneId, form])
 
   useEffect(() => {
     fetchExistingRemark()
