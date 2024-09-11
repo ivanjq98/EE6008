@@ -56,16 +56,16 @@ export default async function StatisticsPage() {
             }
 
             const role = grade.faculty.ProjectFaculty[0]?.role
-            if (role === 'MODERATOR') {
+            if (role === 'SUPERVISOR') {
               acc[componentName].supervisor = grade.score || 0
-            } else if (role === 'SUPERVISOR') {
+            } else if (role === 'MODERATOR') {
               acc[componentName].moderator = grade.score || 0
             }
 
             // Recalculate weighted score with swapped weightages
             acc[componentName].weighted =
-              acc[componentName].supervisor * (weightageObj['MODERATOR'] || 0.3) +
-              acc[componentName].moderator * (weightageObj['SUPERVISOR'] || 0.7)
+              acc[componentName].supervisor * (weightageObj['SUPERVISOR'] || 0.3) +
+              acc[componentName].moderator * (weightageObj['MODERATOR'] || 0.7)
 
             return acc
           },

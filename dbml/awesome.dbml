@@ -1,0 +1,372 @@
+//// ------------------------------------------------------
+//// THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+//// ------------------------------------------------------
+
+Table User {
+  id String [pk]
+  email String [unique, not null]
+  password String [not null]
+  name String [not null]
+  role UserRole [not null, default: 'STUDENT']
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  admin Admin
+  faculty Faculty
+  student Student
+}
+
+Table Admin {
+  id String [pk]
+  userId String [unique, not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  user User [not null]
+}
+
+Table Faculty {
+  id String [pk]
+  userId String [unique, not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  user User [not null]
+  Grade Grade [not null]
+  programme Programme [not null]
+  Project Project [not null]
+  Remark Remark [not null]
+  ProjectFaculty ProjectFaculty [not null]
+}
+
+Table Student {
+  id String [pk]
+  userId String [unique, not null]
+  projectId String
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  matriculationNumber String [unique, not null]
+  Grade Grade [not null]
+  RevieweePeerReviews PeerReview [not null]
+  ReviewerPeerReviews PeerReview [not null]
+  plans ProjectPlan [not null]
+  registrations Registration [not null]
+  project Project
+  user User [not null]
+  Milestone Milestone [not null]
+}
+
+Table Programme {
+  id String [pk]
+  name String [not null]
+  semesterId String [not null]
+  leaderId String [not null]
+  programmeCode String [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  leader Faculty [not null]
+  semester Semester [not null]
+  projects Project [not null]
+
+  indexes {
+    (name, semesterId) [unique]
+  }
+}
+
+Table Project {
+  id String [pk]
+  title String [not null]
+  description String [not null]
+  programmeId String [not null]
+  status ProjectStatus [not null, default: 'PENDING']
+  facultyId String [not null]
+  projectCode String [not null]
+  venueId String
+  reviewMessage String
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  Grade Grade [not null]
+  PeerReview PeerReview [not null]
+  faculty Faculty [not null]
+  programme Programme [not null]
+  venue Venue
+  projectPlans ProjectPlan [not null]
+  registrations Registration [not null]
+  students Student [not null]
+  Milestone Milestone [not null]
+  faculties ProjectFaculty [not null]
+}
+
+Table ProjectPlan {
+  id String [pk]
+  studentId String [not null]
+  projectId String [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  Project Project [not null]
+  Student Student [not null]
+
+  indexes {
+    (studentId, projectId) [unique]
+  }
+}
+
+Table Registration {
+  id String [pk]
+  studentId String [not null]
+  projectId String [not null]
+  priority Int [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  project Project [not null]
+  student Student [not null]
+
+  indexes {
+    (studentId, projectId) [unique]
+  }
+}
+
+Table Semester {
+  id String [pk]
+  name String [unique, not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  active Boolean [not null, default: false]
+  projectApplicationsLimit Int [not null]
+  minimumGroupSize Int [not null]
+  maximumGroupSize Int [not null]
+  SemesterGradeType GradeType [not null]
+  programmes Programme [not null]
+  timeline SemesterTimeline
+  venues Venue [not null]
+}
+
+Table SemesterTimeline {
+  id String [pk]
+  semesterId String [unique, not null]
+  facultyProposalSubmissionStart DateTime [not null]
+  facultyProposalSubmissionEnd DateTime [not null]
+  facultyProposalReviewStart DateTime [not null]
+  facultyProposalReviewEnd DateTime [not null]
+  studentRegistrationStart DateTime [not null]
+  studentRegistrationEnd DateTime [not null]
+  facultyMarkEntryStart DateTime [not null]
+  facultyMarkEntryEnd DateTime [not null]
+  studentPeerReviewStart DateTime [not null]
+  studentPeerReviewEnd DateTime [not null]
+  studentResultRelease DateTime [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  semester Semester [not null]
+}
+
+Table Venue {
+  id String [pk]
+  name String [not null]
+  location String [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  semesterId String [not null]
+  projects Project [not null]
+  semester Semester [not null]
+
+  indexes {
+    (name, semesterId, location) [unique]
+  }
+}
+
+Table Grade {
+  id String [pk]
+  projectId String [not null]
+  studentId String [not null]
+  facultyId String [not null]
+  score Float
+  semesterGradeTypeId String [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  faculty Faculty [not null]
+  project Project [not null]
+  semesterGradeType GradeType [not null]
+  student Student [not null]
+  ProjectFaculty ProjectFaculty
+  projectFacultyId String
+
+  indexes {
+    (studentId, projectId, facultyId, semesterGradeTypeId) [unique]
+  }
+}
+
+Table GradeType {
+  id String [pk]
+  name String [unique, not null]
+  weightage Int [not null, default: 0]
+  semesterId String [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  Grade Grade [not null]
+  semester Semester [not null]
+
+  indexes {
+    (name, semesterId) [unique]
+  }
+}
+
+Table PeerReview {
+  id String [pk]
+  projectId String [not null]
+  reviewerId String [not null]
+  revieweeId String [not null]
+  rank Int [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  studentId String
+  project Project [not null]
+  reviewee Student [not null]
+  reviewer Student [not null]
+
+  indexes {
+    (projectId, revieweeId, reviewerId) [unique]
+  }
+}
+
+Table Milestone {
+  id String [pk]
+  projectId String [not null]
+  studentId String [not null]
+  objective String [not null]
+  description String
+  startDate DateTime [not null]
+  endDate DateTime [not null]
+  status MilestoneStatus [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  project Project [not null]
+  student Student [not null]
+  Remark Remark [not null]
+
+  indexes {
+    (projectId, studentId, startDate) [unique]
+  }
+}
+
+Table Remark {
+  id String [pk]
+  milestoneId String [not null]
+  facultyId String [not null]
+  remarks String [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  milestone Milestone [not null]
+  faculty Faculty [not null]
+
+  indexes {
+    (milestoneId, facultyId) [unique]
+  }
+}
+
+Table ProjectFaculty {
+  id String [pk]
+  projectId String [not null]
+  facultyId String [not null]
+  role FacultyRole [not null]
+  project Project [not null]
+  faculty Faculty [not null]
+  grades Grade [not null]
+
+  indexes {
+    (projectId, facultyId) [unique]
+  }
+}
+
+Table FacultyRoleWeightage {
+  id String [pk]
+  role FacultyRole [unique, not null]
+  weightage Float [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+}
+
+Enum UserRole {
+  ADMIN
+  STUDENT
+  FACULTY
+}
+
+Enum ProjectStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  COMPLETED
+}
+
+Enum MilestoneStatus {
+  NOT_STARTED
+  STARTED
+  NEARLY_HALF
+  HALF_WAY_THERE
+  ALMOST_DONE
+  COMPLETED
+}
+
+Enum FacultyRole {
+  SUPERVISOR
+  MODERATOR
+  NO_ROLE
+}
+
+Ref: Admin.userId - User.id [delete: Cascade]
+
+Ref: Faculty.userId - User.id [delete: Cascade]
+
+Ref: Student.projectId > Project.id
+
+Ref: Student.userId - User.id [delete: Cascade]
+
+Ref: Programme.leaderId > Faculty.id
+
+Ref: Programme.semesterId > Semester.id [delete: Cascade]
+
+Ref: Project.facultyId > Faculty.id [delete: Cascade]
+
+Ref: Project.programmeId > Programme.id
+
+Ref: Project.venueId > Venue.id
+
+Ref: ProjectPlan.projectId > Project.id [delete: Cascade]
+
+Ref: ProjectPlan.studentId > Student.id [delete: Cascade]
+
+Ref: Registration.projectId > Project.id [delete: Cascade]
+
+Ref: Registration.studentId > Student.id [delete: Cascade]
+
+Ref: SemesterTimeline.semesterId - Semester.id [delete: Cascade]
+
+Ref: Venue.semesterId > Semester.id [delete: Cascade]
+
+Ref: Grade.facultyId > Faculty.id
+
+Ref: Grade.projectId > Project.id
+
+Ref: Grade.semesterGradeTypeId > GradeType.id
+
+Ref: Grade.studentId > Student.id
+
+Ref: Grade.projectFacultyId > ProjectFaculty.id
+
+Ref: GradeType.semesterId > Semester.id [delete: Cascade]
+
+Ref: PeerReview.projectId > Project.id
+
+Ref: PeerReview.revieweeId > Student.id
+
+Ref: PeerReview.reviewerId > Student.id
+
+Ref: Milestone.projectId > Project.id [delete: Cascade]
+
+Ref: Milestone.studentId > Student.id [delete: Cascade]
+
+Ref: Remark.milestoneId > Milestone.id [delete: Cascade]
+
+Ref: Remark.facultyId > Faculty.id [delete: Cascade]
+
+Ref: ProjectFaculty.projectId > Project.id
+
+Ref: ProjectFaculty.facultyId > Faculty.id
