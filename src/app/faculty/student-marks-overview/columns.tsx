@@ -1,15 +1,14 @@
 'use client'
 
-import { ColumnDef, SortingFn } from '@tanstack/react-table'
+import { ColumnDef, SortingFn, Row } from '@tanstack/react-table'
 import { useMemo } from 'react'
 
-export type FacultyRole = 'SUPERVISOR' | 'MODERATOR' | 'NO_ROLE' // Keep NO_ROLE for now to match existing data
+export type FacultyRole = 'SUPERVISOR' | 'MODERATOR' | 'NO_ROLE'
 
 export type StudentMark = {
   id: string
   name: string
   projectTitle: string
-  // semester: string
   totalScore: number
   facultyRole: FacultyRole | string
   [key: string]: string | number | FacultyRole
@@ -28,15 +27,10 @@ export function useColumns(assessmentComponents: string[]): ColumnDef<StudentMar
         header: 'Project Name',
         sortingFn: 'alphanumeric' as const
       },
-      // {
-      //   accessorKey: 'semester',
-      //   header: 'Semester',
-      //   sortingFn: 'alphanumeric' as const
-      // },
       ...assessmentComponents.map((component) => ({
         accessorKey: component,
         header: component,
-        cell: ({ row }) => {
+        cell: ({ row }: { row: Row<StudentMark> }) => {
           const score = row.getValue(component) as number
           return <div className='text-right font-medium'>{score.toFixed(2)}</div>
         },
@@ -45,7 +39,7 @@ export function useColumns(assessmentComponents: string[]): ColumnDef<StudentMar
       {
         accessorKey: 'totalScore',
         header: 'Final Score',
-        cell: ({ row }) => {
+        cell: ({ row }: { row: Row<StudentMark> }) => {
           const score = row.getValue('totalScore') as number
           return <div className='text-right font-medium'>{score.toFixed(2)}</div>
         },
@@ -55,7 +49,7 @@ export function useColumns(assessmentComponents: string[]): ColumnDef<StudentMar
         accessorKey: 'facultyRole',
         header: 'Faculty Role',
         sortingFn: 'alphanumeric' as const,
-        cell: ({ row }) => {
+        cell: ({ row }: { row: Row<StudentMark> }) => {
           const role = row.getValue('facultyRole') as string
           return <div className='capitalize'>{role.toLowerCase()}</div>
         }
