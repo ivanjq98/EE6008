@@ -1,4 +1,3 @@
-// src/app/faculty/projects/[projectId]/students/page.tsx
 import { getServerSession } from 'next-auth'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
@@ -43,10 +42,9 @@ export default async function FacultyProjectStudentsPage({ params }: PageProps) 
     <div className='container mx-auto p-4'>
       <h1 className='mb-4 text-2xl font-bold'>{project.title} - Students</h1>
       <ul className='space-y-2'>
-        <Link
-          href={`/faculty/projects/${params.projectId}/milestones`}
-          className='text-blue-500 hover:underline'
-        ></Link>
+        <Link href={`/faculty/projects/${params.projectId}/milestones`} className='text-blue-500 hover:underline'>
+          View Milestones
+        </Link>
       </ul>
     </div>
   )

@@ -76,7 +76,7 @@ export function GanttChart({ milestones, startDate, endDate }: GanttChartProps) 
       console.error('Error processing milestone data:', err)
       setError('Error processing milestone data. Check console for details.')
     }
-  }, [milestones])
+  }, [milestones, statusColors])
 
   const options = {
     height: 400,

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -41,11 +41,7 @@ export function FacultyRemarkForm({ milestoneId }: FacultyRemarkFormProps) {
     }
   })
 
-  useEffect(() => {
-    fetchExistingRemark()
-  }, [milestoneId])
-
-  async function fetchExistingRemark() {
+  const fetchExistingRemark = useCallback(async () => {
     try {
       const remark = await fetchRemarkByMilestoneId(milestoneId)
       if (remark) {
@@ -56,7 +52,11 @@ export function FacultyRemarkForm({ milestoneId }: FacultyRemarkFormProps) {
       console.error('Error fetching existing remark:', error)
       toast.error('Failed to load existing remark. Please try again.')
     }
-  }
+  }, [milestoneId, form, fetchRemarkByMilestoneId])
+
+  useEffect(() => {
+    fetchExistingRemark()
+  }, [fetchExistingRemark])
 
   async function onSubmit(data: RemarkFormData) {
     setIsSubmitting(true)
