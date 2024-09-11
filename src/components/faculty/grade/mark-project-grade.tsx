@@ -17,11 +17,14 @@ interface GradeType {
   weightage: number
 }
 
+type FacultyRole = 'SUPERVISOR' | 'MODERATOR'
+
 interface MarkProjectGradeProps {
   projectId: string
   students: Student[]
   gradeTypes: GradeType[]
   totalScores: Student[]
+  facultyRole: FacultyRole
 }
 
 const getGrade = (score: number): string => {
@@ -32,7 +35,13 @@ const getGrade = (score: number): string => {
   return 'F'
 }
 
-export const MarkProjectGrade: React.FC<MarkProjectGradeProps> = ({ projectId, students, gradeTypes, totalScores }) => {
+export const MarkProjectGrade: React.FC<MarkProjectGradeProps> = ({
+  projectId,
+  students,
+  gradeTypes,
+  totalScores,
+  facultyRole
+}) => {
   if (gradeTypes.length === 0) {
     return <div>No grade types available.</div>
   }
@@ -53,7 +62,7 @@ export const MarkProjectGrade: React.FC<MarkProjectGradeProps> = ({ projectId, s
             studentsData={students}
             projectId={projectId}
             semesterGradeTypeId={gradeType.id}
-            // weightage={gradeType.weightage}
+            facultyRole={facultyRole}
           />
         </TabsContent>
       ))}
