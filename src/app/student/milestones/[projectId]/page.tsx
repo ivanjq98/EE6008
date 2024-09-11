@@ -1,9 +1,10 @@
 import { notFound, redirect } from 'next/navigation'
 import { getServerSession } from 'next-auth'
 import { StudentMilestoneForm } from './StudentMilestoneForm'
-import { MilestoneList } from './MilestoneList'
+import { MilestoneListWrapper } from './MilestoneListWrapper' // We'll create this
 import { prisma } from '@/src/lib/prisma'
 import { authOptions } from '@/src/lib/auth'
+import { ExtendedMilestone } from './MilestoneList' // Make sure to import this type
 
 interface PageProps {
   params: { projectId: string }
@@ -12,7 +13,7 @@ interface PageProps {
 const StudentMilestonePage = async ({ params }: PageProps) => {
   const session = await getServerSession(authOptions)
 
-  if (!session || !session.user.studentId) {
+  if (!session || !session.user.studentId || !session.user.email) {
     redirect('/login')
   }
 
@@ -28,7 +29,8 @@ const StudentMilestonePage = async ({ params }: PageProps) => {
               include: {
                 user: {
                   select: {
-                    name: true
+                    name: true,
+                    email: true
                   }
                 }
               }
@@ -39,7 +41,8 @@ const StudentMilestonePage = async ({ params }: PageProps) => {
                   include: {
                     user: {
                       select: {
-                        name: true
+                        name: true,
+                        email: true
                       }
                     }
                   }
@@ -61,7 +64,10 @@ const StudentMilestonePage = async ({ params }: PageProps) => {
     return (
       <div className='container mx-auto p-4'>
         <h1 className='mb-4 text-2xl font-bold'>{project.title}</h1>
-        <MilestoneList milestones={project.Milestone} />
+        <MilestoneListWrapper
+          milestones={project.Milestone as ExtendedMilestone[]}
+          currentUserEmail={session.user.email}
+        />
         <div className='mt-8'>
           <h2 className='mb-4 text-xl font-semibold'>Create New Milestone</h2>
           <StudentMilestoneForm projectId={project.id} />

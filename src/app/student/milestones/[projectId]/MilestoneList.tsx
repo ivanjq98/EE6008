@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { Milestone, Remark, Student } from '@prisma/client'
+import { Milestone } from '@prisma/client'
 import { Button } from '@/src/components/ui/button'
 import { Input } from '@/src/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/src/components/ui/select'
@@ -9,17 +9,10 @@ import { updateMilestone, deleteMilestone } from '@/src/server/data/milestone'
 import { toast } from 'sonner'
 import { X } from 'lucide-react'
 
-interface ExtendedRemark extends Remark {
+interface ExtendedRemark {
+  id: string
+  remarks: string
   faculty: {
-    user: {
-      name: string
-    }
-  }
-}
-
-interface ExtendedMilestone extends Milestone {
-  Remark: ExtendedRemark[]
-  student: {
     user: {
       name: string
       email: string
@@ -27,10 +20,20 @@ interface ExtendedMilestone extends Milestone {
   }
 }
 
+export type ExtendedMilestone = Milestone & {
+  student: {
+    user: {
+      name: string
+      email: string
+    }
+  }
+  Remark: ExtendedRemark[]
+}
+
 interface MilestoneListProps {
   milestones: ExtendedMilestone[]
   onMilestoneUpdate: () => void
-  currentUserEmail: string // Add this prop
+  currentUserEmail: string
 }
 
 export function MilestoneList({ milestones, onMilestoneUpdate, currentUserEmail }: MilestoneListProps) {
