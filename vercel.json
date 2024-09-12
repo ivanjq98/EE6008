@@ -4,10 +4,5 @@
       "src": "package.json",
       "use": "@vercel/next"
     }
-  ],
-  "build": {
-    "env": {
-      "DATABASE_URL": "@database_url"
-    }
-  }
+  ]
 }
