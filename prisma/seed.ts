@@ -248,7 +248,7 @@ async function projectRegistrationSeed() {
   })
 }
 
-userSeed()
+projectSeed()
   .then(() => projectRegistrationSeed())
   .then(() => prisma.$disconnect())
   .catch(async (e) => {
