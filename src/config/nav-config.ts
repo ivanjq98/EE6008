@@ -60,6 +60,14 @@ export const facultyConfig: FacultyConfig = {
     {
       title: 'Mark Students',
       href: '/faculty/mark'
+    },
+    {
+      title: 'Marks Overview',
+      href: '/faculty/student-marks-overview'
+    },
+    {
+      title: 'Statistics',
+      href: '/faculty/statistics'
     }
   ],
   sideNav: [
@@ -168,6 +176,14 @@ export const adminConfig: AdminConfig = {
     {
       title: 'View Projects',
       href: '/admin/project/view'
+    },
+    {
+      title: 'Marks Overview',
+      href: '/admin/student-marks-overview'
+    },
+    {
+      title: 'Statistics',
+      href: '/admin/statistics'
     }
   ],
   sideNav: [
