@@ -8,8 +8,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { updateMilestone, deleteMilestone } from '@/src/server/data/milestone'
 import { toast } from 'sonner'
 import { X } from 'lucide-react'
+import { format } from 'date-fns'
 
 interface ExtendedRemark {
+  updatedAt: any
   id: string
   remarks: string
   faculty: {
@@ -152,7 +154,11 @@ export function MilestoneList({ milestones, onMilestoneUpdate, currentUserEmail 
                   </SelectContent>
                 </Select>
                 <div className='mt-2'>
-                  <Button onClick={() => handleSave(milestone)} className='mr-2' disabled={isLoading}>
+                  <Button
+                    onClick={() => handleSave(milestone)}
+                    className='mt-2 inline-flex justify-center rounded-md border border-transparent bg-yellow-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2'
+                    disabled={isLoading}
+                  >
                     {isLoading ? 'Saving...' : 'Save'}
                   </Button>
                   <Button onClick={handleCancel} variant='outline' disabled={isLoading}>
@@ -168,7 +174,11 @@ export function MilestoneList({ milestones, onMilestoneUpdate, currentUserEmail 
                 <p>End Date: {new Date(milestone.endDate).toLocaleDateString()}</p>
                 <p>Status: {milestone.status}</p>
                 <p className='text-sm text-gray-500'>Created by: {milestone.student.user.name}</p>
-                <Button onClick={() => handleEdit(milestone)} className='mt-2'>
+                <p className='text-sm text-gray-500'>Updated by: {format(milestone.updatedAt, 'PPP HH:mm:ss')}</p>
+                <Button
+                  onClick={() => handleEdit(milestone)}
+                  className='mt-2 inline-flex justify-center rounded-md border border-transparent bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2'
+                >
                   Edit
                 </Button>
               </>
@@ -179,6 +189,7 @@ export function MilestoneList({ milestones, onMilestoneUpdate, currentUserEmail 
                 {milestone.Remark.map((remark, index) => (
                   <p key={index} className='text-gray-600'>
                     <span className='font-medium'>{remark.faculty.user.name}:</span> {remark.remarks}
+                    <span style={{ float: 'right' }}> {format(remark.updatedAt, 'PPP HH:mm:ss')}</span>
                   </p>
                 ))}
               </div>
