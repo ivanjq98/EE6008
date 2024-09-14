@@ -123,11 +123,8 @@ export default async function StudentMarksOverviewPageWrapper() {
   const { formattedData, assessmentComponents } = await getStudentMarks(currentSemesterId)
 
   return (
-    <div className='container mx-auto py-10'>
-      <h1 className='mb-5 text-2xl font-bold'>Student Marks Overview</h1>
-      <Suspense fallback={<div>Loading...</div>}>
-        <StudentMarksOverviewPage formattedData={formattedData} assessmentComponents={assessmentComponents} />
-      </Suspense>
-    </div>
+    <Suspense fallback={<div>Loading...</div>}>
+      <StudentMarksOverviewPage formattedData={formattedData} assessmentComponents={assessmentComponents} />
+    </Suspense>
   )
 }

@@ -4,10 +4,26 @@ import { Suspense, useCallback } from 'react'
 import { StudentMark } from './columns'
 import { ClientDataTable } from './ClientDataTable'
 import { Button } from '@/src/components/ui/button'
+import { Header } from '@/src/components/header'
 
 interface StudentMarksOverviewPageProps {
   formattedData: StudentMark[]
   assessmentComponents: string[]
+}
+
+function calculateDiscrepancy(
+  supervisorScore: number | null,
+  moderatorScore: number | null,
+  weightage: number
+): string {
+  if (supervisorScore === null || moderatorScore === null) return 'N/A'
+
+  // const max = Math.max(supervisorScore, moderatorScore)
+  // const min = Math.min(supervisorScore, moderatorScore)
+  // const difference = max / min
+  const score_difference = Math.abs(supervisorScore - moderatorScore)
+
+  return `(${score_difference})`
 }
 
 export default function StudentMarksOverviewPage({
@@ -17,7 +33,13 @@ export default function StudentMarksOverviewPage({
   const downloadAllocationResults = useCallback(
     (data: StudentMark[]) => {
       // Create CSV content
-      const headers = ['Student Name', 'Project Title', 'Semester', ...assessmentComponents, 'Total Score']
+      const headers = [
+        'Student Name',
+        'Project Title',
+        'Semester',
+        ...assessmentComponents.flatMap((component) => [`${component} (Weighted)`, `${component} (Discrepancy)`]),
+        'Total Score'
+      ]
       const csvContent = [
         headers.join(','),
         ...data.map((student) =>
@@ -25,13 +47,15 @@ export default function StudentMarksOverviewPage({
             student.name,
             student.projectTitle,
             student.semester,
-            ...assessmentComponents.map((component) => {
+            ...assessmentComponents.flatMap((component) => {
               const grade = student[component] as {
                 supervisor: number | null
                 moderator: number | null
                 weighted: number | null
+                weightage: number
               }
-              return grade.weighted !== null ? grade.weighted.toFixed(2) : ''
+              const discrepancy = calculateDiscrepancy(grade.supervisor, grade.moderator, grade.weightage)
+              return [grade.weighted !== null ? grade.weighted.toFixed(2) : '', discrepancy]
             }),
             student.totalScore.toFixed(2)
           ].join(',')
@@ -56,6 +80,10 @@ export default function StudentMarksOverviewPage({
 
   return (
     <div className='container mx-auto py-10'>
+      <Header
+        title='Student Marks Overview'
+        description='Download the CSV to view the marks discrepancy for each students components'
+      />
       <div className='mb-5 flex items-center justify-between'>
         <Button onClick={() => downloadAllocationResults(formattedData)}>Download CSV</Button>
       </div>
