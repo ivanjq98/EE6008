@@ -16,17 +16,17 @@ export function GanttChart({ milestones, startDate, endDate }: GanttChartProps) 
 
   const statusColors = useMemo(
     () => ({
-      NOT_STARTED: '#fb0509',
-      STARTED: '#FFA500',
-      NEARLY_HALF: '#b0b011',
-      HALF_WAY_THERE: '#5bcd32',
-      ALMOST_DONE: '#00d162',
-      COMPLETED: '#009717'
+      COMPLETED: '#009717',
+      IN_PROGRESS: '#FFA500'
+      // NEARLY_HALF: '#b0b011',
+      // HALF_WAY_THERE: '#5bcd32',
+      // ALMOST_DONE: '#00d162',
+      // NOT_STARTED: '#fb0509'
     }),
     []
   )
 
-  const defaultColor = '#808080' // Gray color for unknown status
+  // const defaultColor = '#808080' // Gray color for unknown status
 
   const getPercentComplete = (status: string): number => {
     const percentMap: { [key: string]: number } = {
@@ -64,7 +64,7 @@ export function GanttChart({ milestones, startDate, endDate }: GanttChartProps) 
           return [
             milestone.id,
             milestone.objective,
-            milestone.status || 'UNKNOWN',
+            milestone.status === 'COMPLETED' ? 'Completed' : 'Not Completed',
             new Date(milestone.startDate),
             new Date(milestone.endDate),
             null,
@@ -91,7 +91,7 @@ export function GanttChart({ milestones, startDate, endDate }: GanttChartProps) 
       },
       barCornerRadius: 3,
       barHeight: 30,
-      palette: Object.values(statusColors).concat(defaultColor)
+      palette: Object.values(statusColors)
     },
     legend: {
       position: 'none'
@@ -108,17 +108,13 @@ export function GanttChart({ milestones, startDate, endDate }: GanttChartProps) 
       <Chart chartType='Gantt' width='100%' height='400px' data={chartData} options={options} chartLanguage='en' />
       <h2 className='mt-4 font-semibold'>Legend:</h2>
       <div className='mt-2 grid grid-cols-2 gap-2 text-sm'>
-        {Object.entries(statusColors).map(([status, color]) => (
-          <div key={status} className='flex items-center'>
-            <div className='mr-2 h-4 w-4' style={{ backgroundColor: color }}></div>
-            <span>
-              {status.replace(/_/g, ' ')} ({getPercentComplete(status)}%)
-            </span>
-          </div>
-        ))}
         <div className='flex items-center'>
-          <div className='mr-2 h-4 w-4' style={{ backgroundColor: defaultColor }}></div>
-          <span>Unknown Status</span>
+          <div className='mr-2 h-4 w-4' style={{ backgroundColor: statusColors.IN_PROGRESS }}></div>
+          <span>In Progress (0-99%)</span>
+        </div>
+        <div className='flex items-center'>
+          <div className='mr-2 h-4 w-4' style={{ backgroundColor: statusColors.COMPLETED }}></div>
+          <span>Completed (100%)</span>
         </div>
       </div>
     </div>

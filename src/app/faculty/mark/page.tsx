@@ -68,7 +68,6 @@ const MarkPage = async () => {
   return (
     <div className='space-y-4'>
       <Header title='Marking' description='Grade your student here.' />
-
       <div>
         <TypographyP>Select project to grade:</TypographyP>
         <ol className='my-4 ml-6 list-decimal [&>li]:mt-2'>

@@ -64,11 +64,11 @@ function createHistogramData(scores: number[], bins = 10) {
   const min = Math.min(...scores)
   const max = Math.max(...scores)
 
-   // Check if all scores are the same
-   if (min === max) {
+  // Check if all scores are the same
+  if (min === max) {
     return [{ binStart: min, binEnd: max, count: scores.length }]
   }
-  
+
   const binSize = (max - min) / bins
   const histogram = Array(bins).fill(0)
 
@@ -206,27 +206,26 @@ export default function StatisticsClient({
           </CardContent>
         </Card>
         <Card>
-        <CardHeader>
-          <CardTitle>Histogram</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width='100%' height={300}>
-            <BarChart data={histogramData}>
-              <CartesianGrid strokeDasharray='3 3' />
-              <XAxis
-                dataKey='binStart'
-                tickFormatter={(value) => value.toFixed(2)}
-              />
-              <YAxis />
-              <Tooltip
-                labelFormatter={(value) => `Score range: ${value.toFixed(2)} - ${(histogramData.find(item => item.binStart === value)?.binEnd || value).toFixed(2)}`}
-              />
-              <Legend />
-              <Bar dataKey='count' fill='#8884d8' />
-            </BarChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
+          <CardHeader>
+            <CardTitle>Histogram</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width='100%' height={300}>
+              <BarChart data={histogramData}>
+                <CartesianGrid strokeDasharray='3 3' />
+                <XAxis dataKey='binStart' tickFormatter={(value) => value.toFixed(2)} />
+                <YAxis />
+                <Tooltip
+                  labelFormatter={(value) =>
+                    `Score range: ${value.toFixed(2)} - ${(histogramData.find((item) => item.binStart === value)?.binEnd || value).toFixed(2)}`
+                  }
+                />
+                <Legend />
+                <Bar dataKey='count' fill='#8884d8' />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
       </div>
     </div>
   )

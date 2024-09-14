@@ -223,9 +223,13 @@ export default function StatisticsClient({ data, assessmentComponentsBySemester,
             <ResponsiveContainer width='100%' height={300}>
               <BarChart data={histogramData}>
                 <CartesianGrid strokeDasharray='3 3' />
-                <XAxis dataKey='binStart' />
+                <XAxis dataKey='binStart' tickFormatter={(value) => value.toFixed(2)} />
                 <YAxis />
-                <Tooltip />
+                <Tooltip
+                  labelFormatter={(value) =>
+                    `Score range: ${value.toFixed(2)} - ${(histogramData.find((item) => item.binStart === value)?.binEnd || value).toFixed(2)}`
+                  }
+                />
                 <Legend />
                 <Bar dataKey='count' fill='#8884d8' />
               </BarChart>

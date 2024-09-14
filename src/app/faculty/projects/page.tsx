@@ -4,6 +4,8 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { authOptions } from '@/src/lib/auth'
 import { prisma } from '@/src/lib/prisma'
+import { Header } from '@/src/components/header'
+import { TypographyP } from '@/src/components/typography'
 
 export default async function FacultyProjectsPage() {
   const session = await getServerSession(authOptions)
@@ -24,16 +26,20 @@ export default async function FacultyProjectsPage() {
 
   return (
     <div className='container mx-auto p-4'>
-      <h1 className='mb-4 text-2xl font-bold'>Your Projects</h1>
-      <ul className='space-y-2'>
+      <Header
+        title='Student Milestones & Remarks'
+        description='Add remarks on student milestones and view their progress timeline.'
+      />
+      <TypographyP>Your Projects:</TypographyP>
+      <ol className='my-4 ml-6 list-decimal [&>li]:mt-2'>
         {projects.map((project) => (
-          <li key={project.id} className='rounded border p-2'>
-            <Link href={`/faculty/projects/${project.id}/milestones`} className='text-blue-500 hover:underline'>
+          <li key={project.id}>
+            <Link href={`/faculty/projects/${project.id}/milestones`} className='underline-offset-4 hover:underline'>
               {project.title}
             </Link>
           </li>
         ))}
-      </ul>
+      </ol>
     </div>
   )
 }
