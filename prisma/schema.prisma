@@ -51,20 +51,21 @@ model Faculty {
 }
 
 model Student {
-  id                  String         @id @default(uuid())
-  userId              String         @unique
+  id                  String          @id @default(uuid())
+  userId              String          @unique
   projectId           String?
-  createdAt           DateTime       @default(now())
-  updatedAt           DateTime       @updatedAt
-  matriculationNumber String         @unique
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+  matriculationNumber String          @unique
   Grade               Grade[]
-  RevieweePeerReviews PeerReview[]   @relation("RevieweePeerReviews")
-  ReviewerPeerReviews PeerReview[]   @relation("ReviewerPeerReviews")
+  RevieweePeerReviews PeerReview[]    @relation("RevieweePeerReviews")
+  ReviewerPeerReviews PeerReview[]    @relation("ReviewerPeerReviews")
   plans               ProjectPlan[]
   registrations       Registration[]
-  project             Project?       @relation(fields: [projectId], references: [id])
-  user                User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project             Project?        @relation(fields: [projectId], references: [id])
+  user                User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   Milestone           Milestone[]
+  ProjectAppeal       ProjectAppeal[]
 }
 
 model Programme {
@@ -104,6 +105,9 @@ model Project {
   students      Student[]
   Milestone     Milestone[]
   faculties     ProjectFaculty[]
+
+  currentAppeals   ProjectAppeal[] @relation("CurrentProject")
+  requestedAppeals ProjectAppeal[] @relation("RequestedProject")
 }
 
 model ProjectPlan {
@@ -307,4 +311,25 @@ enum FacultyRole {
   SUPERVISOR
   MODERATOR
   NO_ROLE
+}
+
+model ProjectAppeal {
+  id                 String       @id @default(uuid())
+  studentId          String
+  currentProjectId   String
+  requestedProjectId String
+  reason             String
+  status             AppealStatus @default(PENDING)
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  student          Student @relation(fields: [studentId], references: [id])
+  currentProject   Project @relation("CurrentProject", fields: [currentProjectId], references: [id])
+  requestedProject Project @relation("RequestedProject", fields: [requestedProjectId], references: [id])
+}
+
+enum AppealStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }
