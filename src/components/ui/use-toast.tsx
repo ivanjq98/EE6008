@@ -15,6 +15,8 @@ interface ToastContextType {
 
 const ToastContext = createContext<ToastContextType | undefined>(undefined)
 
+let addToastFunction: ((toast: Omit<Toast, 'id'>) => void) | null = null
+
 export const ToastProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [toasts, setToasts] = useState<Toast[]>([])
 
@@ -25,6 +27,9 @@ export const ToastProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const removeToast = useCallback((id: number) => {
     setToasts((prev) => prev.filter((toast) => toast.id !== id))
   }, [])
+
+  // Store the addToast function in the closure
+  addToastFunction = addToast
 
   return (
     <ToastContext.Provider value={{ toasts, addToast, removeToast }}>
@@ -66,6 +71,9 @@ const ToastContainer: React.FC = () => {
 }
 
 export const toast = (props: Omit<Toast, 'id'>) => {
-  const { addToast } = useToast()
-  addToast(props)
+  if (addToastFunction) {
+    addToastFunction(props)
+  } else {
+    console.error('Toast function called before ToastProvider was initialized')
+  }
 }
