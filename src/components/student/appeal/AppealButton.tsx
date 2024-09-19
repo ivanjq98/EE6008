@@ -88,8 +88,14 @@ export const AppealButton: React.FC<AppealButtonProps> = ({ studentId, currentPr
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant='outline'>Submit Appeal To Change Project</Button>
+        <Button
+          variant='outline'
+          className='mt-2 inline-flex justify-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2'
+        >
+          Submit Appeal To Change Project
+        </Button>
       </DialogTrigger>
+      <p className='mt-2 text-sm text-gray-600'>Note: You can only submit a total of 3 appeal requests.</p>
       <DialogContent className='sm:max-w-[425px]'>
         <DialogHeader>
           <DialogTitle>Submit Appeal</DialogTitle>

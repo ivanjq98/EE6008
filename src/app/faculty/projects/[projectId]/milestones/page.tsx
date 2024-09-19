@@ -10,6 +10,18 @@ interface PageProps {
   params: { projectId: string }
 }
 
+const formatMilestoneStatus = (status: string): string => {
+  const statusMap: { [key: string]: string } = {
+    NOT_STARTED: 'Not started (0%)',
+    STARTED: 'Started (20%)',
+    NEARLY_HALF: 'Nearly Half (40%)',
+    HALF_WAY_THERE: 'Half Way There (60%)',
+    ALMOST_DONE: 'Almost Done (80%)',
+    COMPLETED: 'Completed (100%)'
+  }
+  return statusMap[status] || status
+}
+
 export default async function FacultyProjectMilestonesPage({ params }: PageProps) {
   const session = await getServerSession(authOptions)
 
@@ -49,7 +61,7 @@ export default async function FacultyProjectMilestonesPage({ params }: PageProps
     })
 
     if (!project) {
-      return <div className='container mx-auto p-4'>Project not found or you don&apos;t hav e access to it.</div>
+      return <div className='container mx-auto p-4'>Project not found or you don&apos;t have access to it.</div>
     }
 
     return (
@@ -61,48 +73,45 @@ export default async function FacultyProjectMilestonesPage({ params }: PageProps
         >
           View Project Timeline
         </Link>
-        {project.students.map((student) => (
-          <div key={student.id} className='mb-8'>
-            <h2 className='mb-4 rounded bg-gray-100 p-2 text-xl font-semibold'>Student: {student.user.name}</h2>
-            {student.Milestone.length > 0 ? (
-              student.Milestone.map((milestone) => (
-                <div key={milestone.id} className='mb-4 rounded border p-4'>
-                  <h3 className='text-lg font-semibold'>{milestone.objective}</h3>
-                  <p className='mt-2 text-gray-600'>{milestone.description}</p>
-                  <div className='mt-2 grid grid-cols-2 gap-2'>
-                    <p>
-                      <span className='font-medium'>Start Date:</span> {format(milestone.startDate, 'PPP HH:mm:ss')}
+        {project.students.flatMap((student) =>
+          student.Milestone.map((milestone) => (
+            <div key={milestone.id} className='mb-4 rounded border p-4'>
+              <h2 className='text-lg font-semibold'>Objective: {milestone.objective}</h2>
+              {milestone.description && <p className='text-gray-600'>Description: {milestone.description}</p>}
+
+              <div className='mt-2 grid grid-cols-2 gap-2'>
+                <p>
+                  <span className='font-medium'>Start Date:</span> {format(milestone.startDate, 'PPP h:mm a')}
+                </p>
+                <p>
+                  <span className='font-medium'>End Date:</span> {format(milestone.endDate, 'PPP h:mm a')}
+                </p>
+                <p>
+                  <span className='font-medium'>Status:</span> {formatMilestoneStatus(milestone.status)}
+                </p>
+                <p>
+                  <span className='font-medium'>Updated At:</span> {format(milestone.updatedAt, 'PPP h:mm a')}
+                </p>
+                <p>
+                  <span className='font-medium'>Student:</span> {student.user.name}
+                </p>
+              </div>
+              {milestone.Remark.length > 0 && (
+                <div className='mt-4'>
+                  <h4 className='font-semibold'>Previous Remarks:</h4>
+                  {milestone.Remark.map((remark) => (
+                    <p key={remark.id} className='mt-1 text-gray-600'>
+                      {remark.remarks} - {format(remark.updatedAt, 'PPP h:mm:ss a')}
                     </p>
-                    <p>
-                      <span className='font-medium'>End Date:</span> {format(milestone.endDate, 'PPP HH:mm:ss')}
-                    </p>
-                    <p>
-                      <span className='font-medium'>Status:</span> {milestone.status}
-                    </p>
-                    <p>
-                      <span className='font-medium'>Updated At:</span> {format(milestone.updatedAt, 'PPP HH:mm:ss')}
-                    </p>
-                  </div>
-                  {milestone.Remark.length > 0 && (
-                    <div className='mt-4'>
-                      <h4 className='font-semibold'>Previous Remarks:</h4>
-                      {milestone.Remark.map((remark) => (
-                        <p key={remark.id} className='mt-1 text-gray-600'>
-                          {remark.remarks} - {format(remark.updatedAt, 'PPP HH:mm:ss')}
-                        </p>
-                      ))}
-                    </div>
-                  )}
-                  <div className='mt-4'>
-                    <FacultyRemarkForm milestoneId={milestone.id} />
-                  </div>
+                  ))}
                 </div>
-              ))
-            ) : (
-              <p className='italic text-gray-600'>No milestones created yet for this student.</p>
-            )}
-          </div>
-        ))}
+              )}
+              <div className='mt-4'>
+                <FacultyRemarkForm milestoneId={milestone.id} />
+              </div>
+            </div>
+          ))
+        )}
       </div>
     )
   } catch (error) {

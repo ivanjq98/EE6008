@@ -16,17 +16,11 @@ export function GanttChart({ milestones, startDate, endDate }: GanttChartProps) 
 
   const statusColors = useMemo(
     () => ({
-      COMPLETED: '#009717',
-      IN_PROGRESS: '#FFA500'
-      // NEARLY_HALF: '#b0b011',
-      // HALF_WAY_THERE: '#5bcd32',
-      // ALMOST_DONE: '#00d162',
-      // NOT_STARTED: '#fb0509'
+      IN_PROGRESS: '#FFA500',
+      COMPLETED: '#009717'
     }),
     []
   )
-
-  // const defaultColor = '#808080' // Gray color for unknown status
 
   const getPercentComplete = (status: string): number => {
     const percentMap: { [key: string]: number } = {
