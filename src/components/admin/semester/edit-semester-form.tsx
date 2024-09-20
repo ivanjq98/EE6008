@@ -230,7 +230,7 @@ export function EditSemesterForm({
               name='studentResultRelease'
               render={({ field }) => (
                 <FormItem className='flex flex-col space-y-4'>
-                  <FormLabel>Peer review</FormLabel>
+                  <FormLabel>Student Mark Release</FormLabel>
                   <SingleDateTimeFormInput value={field.value} onChange={field.onChange} />
                   <FormDescription>Date when student results will be release</FormDescription>
                   <FormMessage />
