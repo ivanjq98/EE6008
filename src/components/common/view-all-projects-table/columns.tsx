@@ -1,9 +1,7 @@
 'use client'
 
 import { z } from 'zod'
-
 import { ColumnDef } from '@tanstack/react-table'
-
 import { DataTableColumnHeader } from './data-table-column-header'
 import { DataTableRowActions } from './data-table-row-actions'
 
@@ -11,10 +9,12 @@ export const projectSchema = z.object({
   id: z.string(),
   title: z.string(),
   programme: z.string(),
-  faculty: z.string(),
+  supervisor: z.string(),
+  moderator: z.string(),
   semester: z.string(),
   description: z.string(),
-  projectCode: z.string()
+  projectCode: z.string(),
+  status: z.enum(['PENDING', 'APPROVED', 'REJECTED', 'COMPLETED'])
 })
 
 export type Project = z.infer<typeof projectSchema>
@@ -26,7 +26,7 @@ export const columns: ColumnDef<Project>[] = [
     header: ({ column }) => {
       return <DataTableColumnHeader column={column} title='Project Code' />
     },
-    cell: ({ row }) => <div className='capitaliz'>{row.getValue('projectCode')}</div>
+    cell: ({ row }) => <div className='capitalize'>{row.getValue('projectCode')}</div>
   },
   {
     accessorKey: 'title',
@@ -48,11 +48,19 @@ export const columns: ColumnDef<Project>[] = [
   },
   {
     enableSorting: false,
-    accessorKey: 'faculty',
+    accessorKey: 'supervisor',
     header: ({ column }) => {
-      return <DataTableColumnHeader column={column} title='Faculty' />
+      return <DataTableColumnHeader column={column} title='Supervisor' />
     },
-    cell: ({ row }) => <div className='capitalize'>{row.getValue('faculty')}</div>
+    cell: ({ row }) => <div className='capitalize'>{row.getValue('supervisor')}</div>
+  },
+  {
+    enableSorting: false,
+    accessorKey: 'moderator',
+    header: ({ column }) => {
+      return <DataTableColumnHeader column={column} title='Moderator' />
+    },
+    cell: ({ row }) => <div className='capitalize'>{row.getValue('moderator')}</div>
   },
   {
     enableSorting: false,

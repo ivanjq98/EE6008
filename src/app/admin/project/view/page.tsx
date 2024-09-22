@@ -20,11 +20,15 @@ const ViewProjectPage = async () => {
       }
     },
     include: {
-      faculty: {
-        select: {
-          user: {
-            select: {
-              name: true
+      faculties: {
+        include: {
+          faculty: {
+            include: {
+              user: {
+                select: {
+                  name: true
+                }
+              }
             }
           }
         }
@@ -59,12 +63,16 @@ const ViewProjectPage = async () => {
   }))
 
   const projectSanitized = data.map((project) => {
+    const supervisor = project.faculties.find((f) => f.role === 'SUPERVISOR')?.faculty.user.name || 'Not assigned'
+    const moderator = project.faculties.find((f) => f.role === 'MODERATOR')?.faculty.user.name || 'Not assigned'
+
     return {
       id: project.id,
       title: project.title,
       semester: project.programme?.semester?.name,
       programme: project.programme?.name,
-      faculty: project.faculty.user.name,
+      supervisor: supervisor,
+      moderator: moderator,
       description: project.description,
       status: project.status,
       projectCode: project.projectCode

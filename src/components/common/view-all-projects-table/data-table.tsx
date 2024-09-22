@@ -1,7 +1,6 @@
 'use client'
 
 import * as React from 'react'
-
 import { Button } from '@/src/components/ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/src/components/ui/table'
 import {
@@ -21,13 +20,32 @@ import {
 
 import { DataTableToolbar } from './data-table-toolbar'
 
-interface DataTableProps<TData, TValue> {
+// Define a more flexible Project type
+type FlexibleProject = {
+  id: string
+  title: string
+  programme: string
+  semester: string
+  description: string
+  projectCode: string
+  status?: string
+  faculty?: string
+  supervisor?: string
+  moderator?: string
+  [key: string]: any // This allows for additional properties
+}
+
+interface DataTableProps<TData extends FlexibleProject, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
   semesterOptions: { label: string; value: string }[]
 }
 
-export function DataTable<TData, TValue>({ columns, data, semesterOptions }: DataTableProps<TData, TValue>) {
+export function DataTable<TData extends FlexibleProject, TValue>({
+  columns,
+  data,
+  semesterOptions
+}: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
@@ -65,13 +83,11 @@ export function DataTable<TData, TValue>({ columns, data, semesterOptions }: Dat
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead key={header.id}>
-                      {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                    </TableHead>
-                  )
-                })}
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id}>
+                    {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                  </TableHead>
+                ))}
               </TableRow>
             ))}
           </TableHeader>
