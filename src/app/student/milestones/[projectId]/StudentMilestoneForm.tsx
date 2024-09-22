@@ -43,115 +43,111 @@ export function StudentMilestoneForm({ projectId }: StudentMilestoneFormProps) {
   })
 
   async function onSubmit(data: MilestoneFormData) {
-    console.log('Submitting milestone data:', { ...data, projectId })
-
     try {
       const result = await createMilestone({ ...data, projectId })
-
       if (result.status === 'ERROR') {
-        console.error('Error from server:', result.message)
         toast.error(result.message)
       } else {
-        console.log('Milestone created successfully:', result)
         toast.success('Milestone created successfully!')
         router.refresh()
         form.reset()
-        // Optionally, redirect to a specific page
         router.push(`/student/milestones/${projectId}`)
       }
     } catch (error) {
-      console.error('Error creating milestone:', error)
       toast.error('Failed to create milestone. Please try again.')
     }
   }
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
-        <FormField
-          control={form.control}
-          name='objective'
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Objective</FormLabel>
-              <FormControl>
-                <Input placeholder='Enter milestone objective' {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name='description'
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Description (Optional)</FormLabel>
-              <FormControl>
-                <Textarea placeholder='Enter milestone description' {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name='startDate'
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Start Date</FormLabel>
-              <FormControl>
-                <Input type='date' {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name='endDate'
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>End Date</FormLabel>
-              <FormControl>
-                <Input type='date' {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name='status'
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Status</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+    <div className='ml-0 max-w-md overflow-hidden rounded-xl bg-white p-6 shadow-md md:max-w-2xl'>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-4'>
+          <div className='grid grid-cols-2 gap-4'>
+            <FormField
+              control={form.control}
+              name='objective'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Objective</FormLabel>
+                  <FormControl>
+                    <Input placeholder='Enter objective' {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name='status'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Status</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder='Select status' />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value='NOT_STARTED'>Not Started (0%)</SelectItem>
+                      <SelectItem value='STARTED'>Started (20%)</SelectItem>
+                      <SelectItem value='NEARLY_HALF'>Nearly Half (40%)</SelectItem>
+                      <SelectItem value='HALF_WAY_THERE'>Half Way There (60%)</SelectItem>
+                      <SelectItem value='ALMOST_DONE'>Almost Done (80%)</SelectItem>
+                      <SelectItem value='COMPLETED'>Completed (100%)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+          <FormField
+            control={form.control}
+            name='description'
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Description (Optional)</FormLabel>
                 <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder='Select status' />
-                  </SelectTrigger>
+                  <Textarea placeholder='Enter description' {...field} className='h-20' />
                 </FormControl>
-                <SelectContent>
-                  <SelectItem value='NOT_STARTED'>Not Started (0%)</SelectItem>
-                  <SelectItem value='STARTED'>Started (20%)</SelectItem>
-                  <SelectItem value='NEARLY_HALF'>Nearly Half (40%)</SelectItem>
-                  <SelectItem value='HALF_WAY_THERE'>Half Way There (60%)</SelectItem>
-                  <SelectItem value='ALMOST_DONE'>Almost Done (80%)</SelectItem>
-                  <SelectItem value='COMPLETED'>Completed (100%)</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <Button type='submit'>Submit Milestone</Button>
-      </form>
-    </Form>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <div className='grid grid-cols-2 gap-4'>
+            <FormField
+              control={form.control}
+              name='startDate'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Start Date</FormLabel>
+                  <FormControl>
+                    <Input type='date' {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name='endDate'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>End Date</FormLabel>
+                  <FormControl>
+                    <Input type='date' {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+          <Button type='submit' className='w-full'>
+            Submit Milestone
+          </Button>
+        </form>
+      </Form>
+    </div>
   )
 }

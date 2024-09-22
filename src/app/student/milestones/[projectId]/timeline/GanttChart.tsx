@@ -16,8 +16,8 @@ export function GanttChart({ milestones, startDate, endDate }: GanttChartProps) 
 
   const statusColors = useMemo(
     () => ({
-      IN_PROGRESS: '#FFA500',
-      COMPLETED: '#009717'
+      COMPLETED: '#009717',
+      IN_PROGRESS: '#FFA500'
     }),
     []
   )

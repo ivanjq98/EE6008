@@ -112,7 +112,7 @@ export function MilestoneList({ milestones, onMilestoneUpdate, currentUserEmail 
   }
 
   return (
-    <div>
+    <div className='ml-0 max-w-md overflow-hidden rounded-xl bg-white p-6 shadow-md md:max-w-2xl'>
       <h2 className='mb-4 text-xl font-semibold'>Project Milestones</h2>
       {milestones.length === 0 ? (
         <p>No milestones created yet.</p>

@@ -1,9 +1,11 @@
 'use client'
 
-import React from 'react'
+import React, { useEffect, useCallback } from 'react'
 import { useFieldArray, useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { z } from 'zod'
+import { useRouter } from 'next/navigation'
+import debounce from 'lodash/debounce'
 
 import { updateStudentGrade } from '@/src/app/actions/faculty/mark'
 import { Button } from '@/src/components/ui/button'
@@ -45,6 +47,7 @@ const getScoreLabel = (score: number, weightage: number) => {
 }
 
 export function GradeForm({ defaultValues, semesterGradeTypeId, weightage, facultyRole }: GradeFormProps) {
+  const router = useRouter()
   const form = useForm<z.infer<typeof UpdateStudentGradeFormSchema>>({
     resolver: zodResolver(UpdateStudentGradeFormSchema),
     defaultValues: { studentGrades: defaultValues }
@@ -55,26 +58,39 @@ export function GradeForm({ defaultValues, semesterGradeTypeId, weightage, facul
     control: form.control
   })
 
-  async function onSubmit(values: z.infer<typeof UpdateStudentGradeFormSchema>) {
-    const filteredValues = values.studentGrades.filter((student) => student.grade !== '')
+  const saveGrades = useCallback(
+    async (values: z.infer<typeof UpdateStudentGradeFormSchema>) => {
+      const filteredValues = values.studentGrades.filter((student) => student.grade !== '')
 
-    if (filteredValues.length === 0) {
-      toast.error('No grades to submit')
-      return
-    }
+      if (filteredValues.length === 0) return
 
-    try {
-      const result = await updateStudentGrade({ studentGrades: filteredValues }, semesterGradeTypeId, facultyRole)
-      if (result.status === 'ERROR') {
-        toast.error(result.message)
-      } else {
-        toast.success(result.message)
-        form.reset({ studentGrades: defaultValues })
+      try {
+        const result = await updateStudentGrade({ studentGrades: filteredValues }, semesterGradeTypeId, facultyRole)
+        if (result.status === 'ERROR') {
+          toast.error(result.message)
+        } else {
+          toast.success('Grades saved successfully')
+        }
+      } catch (error) {
+        console.error('Error saving grades:', error)
+        toast.error('An unexpected error occurred while saving. Please try again.')
       }
-    } catch (error) {
-      console.error('Error updating grades:', error)
-      toast.error('An unexpected error occurred. Please try again.')
-    }
+    },
+    [semesterGradeTypeId, facultyRole]
+  )
+
+  const debouncedSave = useCallback(debounce(saveGrades, 1000), [saveGrades])
+
+  useEffect(() => {
+    const subscription = form.watch((value) => {
+      debouncedSave(value as z.infer<typeof UpdateStudentGradeFormSchema>)
+    })
+    return () => subscription.unsubscribe()
+  }, [form, debouncedSave])
+
+  async function onSubmit(values: z.infer<typeof UpdateStudentGradeFormSchema>) {
+    await saveGrades(values)
+    router.refresh()
   }
 
   return (

@@ -78,7 +78,7 @@ export const AppealButton: React.FC<AppealButtonProps> = ({ studentId, currentPr
       form.reset()
       router.refresh()
       // Optionally, redirect to a specific page
-      router.push('/student/appeals')
+      router.push('/student/my-project')
     } catch (error) {
       console.error('Error submitting appeal:', error)
       toast.error(error instanceof Error ? error.message : 'Failed to submit appeal. Please try again.')
