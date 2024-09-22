@@ -10,7 +10,7 @@ export const projectSchema = z.object({
   title: z.string(),
   programme: z.string(),
   supervisor: z.string(),
-  moderator: z.string().optional(),
+  moderator: z.string(),
   semester: z.string(),
   description: z.string(),
   projectCode: z.string(),
@@ -43,6 +43,12 @@ export const columns: ColumnDef<Project>[] = [
     accessorKey: 'supervisor',
     header: ({ column }) => <DataTableColumnHeader column={column} title='Supervisor' />,
     cell: ({ row }) => <div className='capitalize'>{row.getValue('supervisor')}</div>
+  },
+  {
+    enableSorting: false,
+    accessorKey: 'moderator',
+    header: ({ column }) => <DataTableColumnHeader column={column} title='Moderator' />,
+    cell: ({ row }) => <div className='capitalize'>{row.getValue('moderator')}</div>
   },
   {
     enableSorting: false,

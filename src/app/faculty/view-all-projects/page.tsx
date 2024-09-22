@@ -64,6 +64,7 @@ const ViewProjectPage = async () => {
 
   const projectSanitized = data.map((project) => {
     const supervisor = project.faculties.find((f) => f.role === 'SUPERVISOR')?.faculty.user.name || 'Not assigned'
+    const moderator = project.faculties.find((f) => f.role === 'MODERATOR')?.faculty.user.name || 'Not assigned'
 
     return {
       id: project.id,
@@ -71,6 +72,7 @@ const ViewProjectPage = async () => {
       semester: project.programme?.semester?.name,
       programme: project.programme?.name,
       supervisor: supervisor,
+      moderator: moderator,
       description: project.description,
       status: project.status,
       projectCode: project.projectCode
