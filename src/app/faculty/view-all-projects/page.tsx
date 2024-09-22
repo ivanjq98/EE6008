@@ -7,7 +7,7 @@ import { Header } from '@/src/components/header'
 import { authOptions } from '@/src/lib/auth'
 import { prisma } from '@/src/lib/prisma'
 
-const ViewAllProjectPage = async () => {
+const ViewProjectPage = async () => {
   const session = await getServerSession(authOptions)
   const user = session?.user
 
@@ -20,11 +20,15 @@ const ViewAllProjectPage = async () => {
       }
     },
     include: {
-      faculty: {
-        select: {
-          user: {
-            select: {
-              name: true
+      faculties: {
+        include: {
+          faculty: {
+            include: {
+              user: {
+                select: {
+                  name: true
+                }
+              }
             }
           }
         }
@@ -59,12 +63,14 @@ const ViewAllProjectPage = async () => {
   }))
 
   const projectSanitized = data.map((project) => {
+    const supervisor = project.faculties.find((f) => f.role === 'SUPERVISOR')?.faculty.user.name || 'Not assigned'
+
     return {
       id: project.id,
       title: project.title,
       semester: project.programme?.semester?.name,
       programme: project.programme?.name,
-      faculty: project.faculty.user.name,
+      supervisor: supervisor,
       description: project.description,
       status: project.status,
       projectCode: project.projectCode
@@ -80,4 +86,4 @@ const ViewAllProjectPage = async () => {
   )
 }
 
-export default ViewAllProjectPage
+export default ViewProjectPage

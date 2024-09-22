@@ -19,33 +19,15 @@ import {
 } from '@tanstack/react-table'
 
 import { DataTableToolbar } from './data-table-toolbar'
+import { Project } from './columns' // Import the Project type from columns.tsx
 
-// Define a more flexible Project type
-type FlexibleProject = {
-  id: string
-  title: string
-  programme: string
-  semester: string
-  description: string
-  projectCode: string
-  status?: string
-  faculty?: string
-  supervisor?: string
-  moderator?: string
-  [key: string]: any // This allows for additional properties
-}
-
-interface DataTableProps<TData extends FlexibleProject, TValue> {
-  columns: ColumnDef<TData, TValue>[]
-  data: TData[]
+interface DataTableProps {
+  columns: ColumnDef<Project>[]
+  data: Project[]
   semesterOptions: { label: string; value: string }[]
 }
 
-export function DataTable<TData extends FlexibleProject, TValue>({
-  columns,
-  data,
-  semesterOptions
-}: DataTableProps<TData, TValue>) {
+export function DataTable({ columns, data, semesterOptions }: DataTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
