@@ -71,7 +71,7 @@ async function getStudentMarks(currentSemesterId: string) {
   const formattedData: StudentMark[] = studentMarks.map((student) => {
     const grades = {} as Record<
       string,
-      { supervisor: number | null; moderator: number | null; weighted: number | null }
+      { supervisor: number | null; moderator: number | null; weighted: number | null; weightage: number }
     >
 
     assessmentComponents.forEach((component) => {
@@ -88,6 +88,7 @@ async function getStudentMarks(currentSemesterId: string) {
 
       const supervisorScore = supervisorGrade?.score ?? null
       const moderatorScore = moderatorGrade?.score ?? null
+      const weightage = supervisorGrade?.semesterGradeType.weightage ?? 0
 
       let weightedScore = null
       if (supervisorScore !== null && moderatorScore !== null) {
@@ -98,7 +99,8 @@ async function getStudentMarks(currentSemesterId: string) {
       grades[component.name] = {
         supervisor: supervisorScore,
         moderator: moderatorScore,
-        weighted: weightedScore
+        weighted: weightedScore,
+        weightage: weightage
       }
     })
 

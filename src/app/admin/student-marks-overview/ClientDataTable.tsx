@@ -5,25 +5,66 @@ import { useColumns, StudentMark } from './columns'
 import { DataTable } from './data-table'
 import { Input } from '@/src/components/ui/input'
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/src/components/ui/select'
+import { AlertTriangle, AlertCircle } from 'lucide-react'
 
 interface ClientDataTableProps {
   assessmentComponents: string[]
   data: StudentMark[]
 }
 
+type DiscrepancyLevel = 'all' | 'high' | 'moderate' | 'low'
+
+const calculateHighestDiscrepancy = (student: StudentMark): number => {
+  let highestDiscrepancy = 0
+  Object.entries(student).forEach(([key, value]) => {
+    if (
+      typeof value === 'object' &&
+      value !== null &&
+      'supervisor' in value &&
+      'moderator' in value &&
+      'weightage' in value
+    ) {
+      const { supervisor, moderator, weightage } = value
+      if (supervisor !== null && moderator !== null) {
+        const discrepancy = (Math.abs(supervisor - moderator) / weightage) * 100
+        highestDiscrepancy = Math.max(highestDiscrepancy, discrepancy)
+      }
+    }
+  })
+  return highestDiscrepancy
+}
+
 export function ClientDataTable({ assessmentComponents, data }: ClientDataTableProps) {
   const columns = useColumns(assessmentComponents)
   const [nameFilter, setNameFilter] = useState('')
   const [semesterFilter, setSemesterFilter] = useState('')
+  const [discrepancyFilter, setDiscrepancyFilter] = useState<DiscrepancyLevel>('all')
 
   const filteredData = useMemo(() => {
     return data.filter((item) => {
       const nameMatch = item.name.toLowerCase().includes(nameFilter.toLowerCase())
       const semesterMatch =
         semesterFilter === '' || semesterFilter === 'all' || String(item.semester) === semesterFilter
-      return nameMatch && semesterMatch
+
+      const highestDiscrepancy = calculateHighestDiscrepancy(item)
+      let discrepancyMatch = true
+      switch (discrepancyFilter) {
+        case 'high':
+          discrepancyMatch = highestDiscrepancy >= 30
+          break
+        case 'moderate':
+          discrepancyMatch = highestDiscrepancy > 15 && highestDiscrepancy < 30
+          break
+        case 'low':
+          discrepancyMatch = highestDiscrepancy <= 15
+          break
+        default:
+          discrepancyMatch = true
+      }
+
+      return nameMatch && semesterMatch && discrepancyMatch
     })
-  }, [data, nameFilter, semesterFilter])
+  }, [data, nameFilter, semesterFilter, discrepancyFilter])
 
   const semesters = useMemo(() => {
     const uniqueSemesters = new Set(data.map((item) => String(item.semester)))
@@ -50,6 +91,30 @@ export function ClientDataTable({ assessmentComponents, data }: ClientDataTableP
                 {semester}
               </SelectItem>
             ))}
+          </SelectContent>
+        </Select>
+
+        <Select value={discrepancyFilter} onValueChange={(value) => setDiscrepancyFilter(value as DiscrepancyLevel)}>
+          <SelectTrigger className='max-w-sm'>
+            <SelectValue placeholder='Select discrepancy level' />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value='all'>All Levels</SelectItem>
+            <SelectItem value='high'>
+              <div className='flex items-center'>
+                <AlertTriangle className='mr-2' size={16} />
+                High Discrepancy
+              </div>
+            </SelectItem>
+            <SelectItem value='moderate'>
+              <div className='flex items-center'>
+                <AlertCircle className='mr-2' size={16} />
+                Moderate Discrepancy
+              </div>
+            </SelectItem>
+            <SelectItem value='low'>
+              <div className='flex items-center'>Low Discrepancy</div>
+            </SelectItem>
           </SelectContent>
         </Select>
       </div>

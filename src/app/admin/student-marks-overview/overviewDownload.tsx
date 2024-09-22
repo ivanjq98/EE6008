@@ -10,6 +10,23 @@ interface StudentMarksOverviewPageProps {
   assessmentComponents: string[]
 }
 
+const calculateMaxDiscrepancy = (student: StudentMark, components: string[]): number => {
+  let maxDiscrepancy = 0
+  components.forEach((component) => {
+    const grade = student[component] as {
+      supervisor: number | null
+      moderator: number | null
+      weighted: number | null
+      weightage: number
+    }
+    if (grade.supervisor !== null && grade.moderator !== null) {
+      const discrepancy = (Math.abs(grade.supervisor - grade.moderator) / grade.weightage) * 100
+      maxDiscrepancy = Math.max(maxDiscrepancy, discrepancy)
+    }
+  })
+  return maxDiscrepancy
+}
+
 export default function StudentMarksOverviewPage({
   formattedData,
   assessmentComponents
@@ -17,11 +34,19 @@ export default function StudentMarksOverviewPage({
   const downloadAllocationResults = useCallback(
     (data: StudentMark[]) => {
       // Create CSV content
-      const headers = ['Student Name', 'Project Title', 'Semester', ...assessmentComponents, 'Total Score']
+      const headers = [
+        'Student Name',
+        'Project Title',
+        'Semester',
+        ...assessmentComponents,
+        'Total Score',
+        'Max Discrepancy (%)'
+      ]
       const csvContent = [
         headers.join(','),
-        ...data.map((student) =>
-          [
+        ...data.map((student) => {
+          const maxDiscrepancy = calculateMaxDiscrepancy(student, assessmentComponents)
+          return [
             student.name,
             student.projectTitle,
             student.semester,
@@ -33,9 +58,10 @@ export default function StudentMarksOverviewPage({
               }
               return grade.weighted !== null ? grade.weighted.toFixed(2) : ''
             }),
-            student.totalScore.toFixed(2)
+            student.totalScore.toFixed(2),
+            maxDiscrepancy.toFixed(2)
           ].join(',')
-        )
+        })
       ].join('\n')
 
       // Create Blob and download
