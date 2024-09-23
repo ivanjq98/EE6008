@@ -52,7 +52,7 @@ async function userSeed() {
     data: {
       user: {
         create: {
-          name: 'Hau Wai Ping',
+          name: 'Li Kwok Hung',
           email: 'admin@ntu.edu.sg',
           password,
           role: UserRole.ADMIN
