@@ -74,7 +74,7 @@ const ProjectPeerReviewPage = async ({ params }: { params: { projectId: string }
       {project.students.map((student) => (
         <div key={student.id} className='space-y-4'>
           <TypographyP>
-            <strong>{student.user.name}'s Reviews:</strong>
+            <strong>{student.user.name}&apos;s Reviews:</strong>
           </TypographyP>
 
           {student.ReviewerPeerReviews.length === 0 ? (
