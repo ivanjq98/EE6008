@@ -1,5 +1,6 @@
 import React from 'react'
 import { ColumnDef, Row } from '@tanstack/react-table'
+import { AlertTriangle, AlertCircle } from 'lucide-react'
 
 export type StudentMark = {
   id: string
@@ -47,10 +48,7 @@ export const useColumns = (assessmentComponents: string[]): ColumnDef<StudentMar
     accessorKey: 'projectTitle',
     header: 'Project Title'
   },
-  {
-    accessorKey: 'semester',
-    header: 'Semester'
-  },
+
   ...assessmentComponents.map((component) => ({
     accessorKey: component,
     header: component,
