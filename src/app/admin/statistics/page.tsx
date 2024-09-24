@@ -6,6 +6,15 @@ export default async function StatisticsPage() {
     const studentData = await prisma.student.findMany({
       include: {
         user: true,
+        project: {
+          include: {
+            faculties: {
+              include: {
+                faculty: true
+              }
+            }
+          }
+        },
         Grade: {
           include: {
             semesterGradeType: {
@@ -13,11 +22,7 @@ export default async function StatisticsPage() {
                 semester: true
               }
             },
-            faculty: {
-              include: {
-                ProjectFaculty: true
-              }
-            }
+            faculty: true
           }
         }
       }
@@ -55,17 +60,19 @@ export default async function StatisticsPage() {
               acc[componentName] = { supervisor: 0, moderator: 0, weighted: 0 }
             }
 
-            const role = grade.faculty.ProjectFaculty[0]?.role
-            if (role === 'SUPERVISOR') {
+            // Find the faculty role for this student's project
+            const facultyRole = student.project?.faculties.find((pf) => pf.faculty.id === grade.facultyId)?.role
+
+            if (facultyRole === 'SUPERVISOR') {
               acc[componentName].supervisor = grade.score || 0
-            } else if (role === 'MODERATOR') {
+            } else if (facultyRole === 'MODERATOR') {
               acc[componentName].moderator = grade.score || 0
             }
 
-            // Recalculate weighted score with swapped weightages
+            // Recalculate weighted score
             acc[componentName].weighted =
-              acc[componentName].supervisor * (weightageObj['SUPERVISOR'] || 0.3) +
-              acc[componentName].moderator * (weightageObj['MODERATOR'] || 0.7)
+              acc[componentName].supervisor * (weightageObj['SUPERVISOR'] || 0.7) +
+              acc[componentName].moderator * (weightageObj['MODERATOR'] || 0.3)
 
             return acc
           },
