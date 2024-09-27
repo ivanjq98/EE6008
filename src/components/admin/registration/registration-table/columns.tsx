@@ -13,6 +13,9 @@ export const projectSchema = z.object({
   projectTitle: z.string(),
   projectCode: z.string(),
   totalSignUps: z.number(),
+  vacancywaitlist: z.string(),
+  semester: z.string(),
+
   registrantDetails: z.array(
     z.object({
       matriculationNumber: z.string(),
@@ -22,38 +25,39 @@ export const projectSchema = z.object({
   )
 })
 
-export type Registration = z.infer<typeof projectSchema>
+export type Project = z.infer<typeof projectSchema>
 
-export const columns: ColumnDef<Registration>[] = [
+export const columns: ColumnDef<Project>[] = [
   {
     enableSorting: false,
+    accessorKey: 'semester',
+    header: ({ column }) => <DataTableColumnHeader column={column} title='Semester' />,
+    cell: ({ row }) => <div className='capitalize'>{row.getValue('semester')}</div>,
+    filterFn: (row, id, value) => value.includes(row.getValue(id))
+  },
+  {
     accessorKey: 'projectCode',
-    header: ({ column }) => {
-      return <DataTableColumnHeader column={column} title='Project Code' />
-    },
+    header: ({ column }) => <DataTableColumnHeader column={column} title='Project Code' />,
     cell: ({ row }) => <div>{row.getValue('projectCode')}</div>
   },
   {
-    enableSorting: false,
     accessorKey: 'projectTitle',
-    header: ({ column }) => {
-      return <DataTableColumnHeader column={column} title='Title' />
-    },
+    header: ({ column }) => <DataTableColumnHeader column={column} title='Title' />,
     cell: ({ row }) => <div>{row.getValue('projectTitle')}</div>
   },
+
   {
-    enableSorting: false,
     accessorKey: 'totalSignUps',
-    header: ({ column }) => {
-      return <DataTableColumnHeader column={column} title='Total Sign Ups' />
-    },
+    header: ({ column }) => <DataTableColumnHeader column={column} title='Total Sign Ups' />,
     cell: ({ row }) => <div>{row.getValue('totalSignUps')}</div>
   },
   {
+    accessorKey: 'vacancywaitlist',
+    header: ({ column }) => <DataTableColumnHeader column={column} title='Vacancy/Waitlist' />,
+    cell: ({ row }) => <div>{row.getValue('vacancywaitlist')}</div>
+  },
+  {
     id: 'actions',
-    enableHiding: false,
-    cell: ({ row }) => {
-      return <DataTableRowActions row={row} />
-    }
+    cell: ({ row }) => <DataTableRowActions row={row} />
   }
 ]

@@ -23,14 +23,20 @@ import { Pagination, PaginationContent, PaginationItem, PaginationLink } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/src/components/ui/table'
 import { Row } from '@tanstack/react-table'
 
-import { Registration } from './columns'
+import { Project } from './columns'
 
 interface DataTableRowActionsProps<TData> {
   row: Row<TData>
 }
 
+interface RegistrantDetail {
+  name: string
+  matriculationNumber: string
+  priority: number
+}
+
 export function DataTableRowActions<TData>({ row }: DataTableRowActionsProps<TData>) {
-  const data = row.original as Registration
+  const data = row.original as Project
   const registrantDetails = data.registrantDetails
   const [page, setPage] = useState(0)
   const registrationDetailsSplitted = _.chunk(registrantDetails, 5)
@@ -54,25 +60,36 @@ export function DataTableRowActions<TData>({ row }: DataTableRowActionsProps<TDa
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Registrant Details</DialogTitle>
+          <DialogDescription>
+            Project: {data.projectCode} - {data.projectTitle}
+          </DialogDescription>
+        </DialogHeader>
 
-          <Table className='mt-2'>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Matric No.</TableHead>
-                <TableHead>Name</TableHead>
-                <TableHead>Priority</TableHead>
+        <Table className='mt-2'>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Matric No.</TableHead>
+              <TableHead>Name</TableHead>
+              <TableHead>Priority</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {registrationDetailsSplitted[page]?.map((detail: RegistrantDetail) => (
+              <TableRow key={detail.matriculationNumber}>
+                <TableCell className='font-medium'>{detail.matriculationNumber}</TableCell>
+                <TableCell>{detail.name}</TableCell>
+                <TableCell>{detail.priority}</TableCell>
               </TableRow>
-            </TableHeader>
-            <TableBody>
-              {registrationDetailsSplitted[page].map(({ name, matriculationNumber, priority }) => (
-                <TableRow key={matriculationNumber}>
-                  <TableCell className='font-medium'>{matriculationNumber}</TableCell>
-                  <TableCell>{name}</TableCell>
-                  <TableCell>{priority}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+            )) || (
+              <TableRow>
+                <TableCell colSpan={3} className='text-center'>
+                  No registrants to display.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+        {paginationLength > 1 && (
           <Pagination>
             <PaginationContent>
               {Array.from({ length: paginationLength }, (_, i) => (
@@ -84,7 +101,7 @@ export function DataTableRowActions<TData>({ row }: DataTableRowActionsProps<TDa
               ))}
             </PaginationContent>
           </Pagination>
-        </DialogHeader>
+        )}
       </DialogContent>
     </Dialog>
   )
