@@ -3,6 +3,7 @@ import { prisma } from '@/src/lib/prisma'
 import { StudentMark } from './columns'
 import { ClientDataTable } from './ClientDataTable'
 import StudentMarksOverviewPage from './overviewDownload'
+import { downloadSupervisorModeratorMarks } from './overviewDownload2'
 
 async function getCurrentSemesterId() {
   const currentSemester = await prisma.semester.findFirst({
@@ -128,7 +129,11 @@ export default async function StudentMarksOverviewPageWrapper() {
     <div className='container mx-auto py-10'>
       <h1 className='mb-5 text-2xl font-bold'>Student Marks Overview</h1>
       <Suspense fallback={<div>Loading...</div>}>
-        <StudentMarksOverviewPage formattedData={formattedData} assessmentComponents={assessmentComponents} />
+        <StudentMarksOverviewPage
+          formattedData={formattedData}
+          assessmentComponents={assessmentComponents}
+          downloadSupervisorModeratorMarks={downloadSupervisorModeratorMarks}
+        />
       </Suspense>
     </div>
   )

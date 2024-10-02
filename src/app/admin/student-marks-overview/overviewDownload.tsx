@@ -8,6 +8,7 @@ import { Button } from '@/src/components/ui/button'
 interface StudentMarksOverviewPageProps {
   formattedData: StudentMark[]
   assessmentComponents: string[]
+  downloadSupervisorModeratorMarks: (data: { formattedData: StudentMark[]; assessmentComponents: string[] }) => void
 }
 
 const calculateMaxDiscrepancy = (student: StudentMark, components: string[]): number => {
@@ -29,7 +30,8 @@ const calculateMaxDiscrepancy = (student: StudentMark, components: string[]): nu
 
 export default function StudentMarksOverviewPage({
   formattedData,
-  assessmentComponents
+  assessmentComponents,
+  downloadSupervisorModeratorMarks
 }: StudentMarksOverviewPageProps) {
   const downloadAllocationResults = useCallback(
     (data: StudentMark[]) => {
@@ -79,12 +81,23 @@ export default function StudentMarksOverviewPage({
     },
     [assessmentComponents]
   )
+  const handleDownloadSupervisorModeratorMarks = useCallback(() => {
+    downloadSupervisorModeratorMarks({ formattedData, assessmentComponents })
+  }, [downloadSupervisorModeratorMarks, formattedData, assessmentComponents])
 
   return (
     <div className='container mx-auto py-10'>
       <div className='mb-5 flex items-center justify-between'>
-        <Button onClick={() => downloadAllocationResults(formattedData)}>Download CSV</Button>
+        <div className='space-x-4'>
+          <Button onClick={() => downloadAllocationResults(formattedData)}>Download Overall Marks CSV</Button>
+          <Button onClick={handleDownloadSupervisorModeratorMarks}>Download Supervisor/Moderator Marks CSV</Button>
+        </div>
       </div>
+      <p className='mb-4 text-sm text-gray-600'>The "Overall Marks CSV" includes weighted scores and total scores. </p>
+      <p className='mb-4 text-sm text-gray-600'>
+        The "Supervisor/Moderator Marks CSV" provides a detailed breakdown of individual supervisor and moderator
+        scores.
+      </p>
       <Suspense fallback={<div>Loading...</div>}>
         <ClientDataTable assessmentComponents={assessmentComponents} data={formattedData} />
       </Suspense>

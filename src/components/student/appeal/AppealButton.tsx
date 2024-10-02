@@ -90,7 +90,7 @@ export const AppealButton: React.FC<AppealButtonProps> = ({ studentId, currentPr
       <DialogTrigger asChild>
         <Button
           variant='outline'
-          className='mt-2 inline-flex justify-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2'
+          className='mt-2 inline-flex justify-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2'
         >
           Submit Appeal To Change Project
         </Button>
