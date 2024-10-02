@@ -93,10 +93,12 @@ export default function StudentMarksOverviewPage({
           <Button onClick={handleDownloadSupervisorModeratorMarks}>Download Supervisor/Moderator Marks CSV</Button>
         </div>
       </div>
-      <p className='mb-4 text-sm text-gray-600'>The "Overall Marks CSV" includes weighted scores and total scores. </p>
       <p className='mb-4 text-sm text-gray-600'>
-        The "Supervisor/Moderator Marks CSV" provides a detailed breakdown of individual supervisor and moderator
-        scores.
+        The &ldquo;Overall Marks CSV&rdquo; includes weighted scores and total scores.
+      </p>
+      <p className='mb-4 text-sm text-gray-600'>
+        The &ldquo;Supervisor/Moderator Marks CSV&rdquo; provides a detailed breakdown of individual supervisor and
+        moderator scores.
       </p>
       <Suspense fallback={<div>Loading...</div>}>
         <ClientDataTable assessmentComponents={assessmentComponents} data={formattedData} />
