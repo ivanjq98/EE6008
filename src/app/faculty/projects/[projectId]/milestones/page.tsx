@@ -4,7 +4,7 @@ import { authOptions } from '@/src/lib/auth'
 import { prisma } from '@/src/lib/prisma'
 import { FacultyRemarkForm } from './FacultyRemarkForm'
 import Link from 'next/link'
-import { format } from 'date-fns'
+import { formatInTimeZone } from 'date-fns-tz'
 
 interface PageProps {
   params: { projectId: string }
@@ -81,16 +81,19 @@ export default async function FacultyProjectMilestonesPage({ params }: PageProps
 
               <div className='mt-2 grid grid-cols-2 gap-2'>
                 <p>
-                  <span className='font-medium'>Start Date:</span> {format(milestone.startDate, 'PPP h:mm a')}
+                  <span className='font-medium'>Start Date:</span>{' '}
+                  {formatInTimeZone(milestone.startDate, 'Asia/Singapore', 'PPP h:mm a')}
                 </p>
                 <p>
-                  <span className='font-medium'>End Date:</span> {format(milestone.endDate, 'PPP h:mm a')}
+                  <span className='font-medium'>End Date:</span>{' '}
+                  {formatInTimeZone(milestone.endDate, 'Asia/Singapore', 'PPP h:mm a')}
                 </p>
                 <p>
                   <span className='font-medium'>Status:</span> {formatMilestoneStatus(milestone.status)}
                 </p>
                 <p>
-                  <span className='font-medium'>Updated At:</span> {format(milestone.updatedAt, 'PPP h:mm a')}
+                  <span className='font-medium'>Updated At:</span>{' '}
+                  {formatInTimeZone(milestone.updatedAt, 'Asia/Singapore', 'PPP h:mm a')}
                 </p>
                 <p>
                   <span className='font-medium'>Student:</span> {student.user.name}
@@ -101,7 +104,7 @@ export default async function FacultyProjectMilestonesPage({ params }: PageProps
                   <h4 className='font-semibold'>Previous Remarks:</h4>
                   {milestone.Remark.map((remark) => (
                     <p key={remark.id} className='mt-1 text-gray-600'>
-                      {remark.remarks} - {format(remark.updatedAt, 'PPP h:mm:ss a')}
+                      {remark.remarks} - {formatInTimeZone(remark.updatedAt, 'Asia/Singapore', 'PPP h:mm:ss a')}
                     </p>
                   ))}
                 </div>
