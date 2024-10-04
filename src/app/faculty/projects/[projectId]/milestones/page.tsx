@@ -104,7 +104,7 @@ export default async function FacultyProjectMilestonesPage({ params }: PageProps
                   <h4 className='font-semibold'>Previous Remarks:</h4>
                   {milestone.Remark.map((remark) => (
                     <p key={remark.id} className='mt-1 text-gray-600'>
-                      {remark.remarks} - {formatInTimeZone(remark.updatedAt, 'Asia/Singapore', 'PPP h:mm:ss a')}
+                      {remark.remarks} - {formatInTimeZone(remark.updatedAt, 'Asia/Singapore', 'PPP h:mm a')}
                     </p>
                   ))}
                 </div>

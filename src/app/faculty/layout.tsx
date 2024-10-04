@@ -43,7 +43,7 @@ export default async function FacultyLayout({ children }: FacultyLayoutProps) {
       ...facultyConfig.sideNav,
       { title: 'Programme Leader', type: 'header' },
       {
-        title: 'Review',
+        title: 'Review Projects',
         href: '/faculty/review-projects',
         icon: 'reviewProjects',
         type: 'link'
@@ -52,6 +52,12 @@ export default async function FacultyLayout({ children }: FacultyLayoutProps) {
         title: 'Project Moderator',
         href: '/faculty/project-moderator',
         icon: 'user',
+        type: 'link'
+      },
+      {
+        title: 'Module Marks',
+        href: '/faculty/module-marks-overview',
+        icon: 'student',
         type: 'link'
       }
     ]
