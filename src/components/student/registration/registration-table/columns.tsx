@@ -48,16 +48,12 @@ export const columns: ColumnDef<Project>[] = [
 
   {
     accessorKey: 'totalSignUps',
-    header: ({ column }) => <DataTableColumnHeader column={column} title='Total Sign Ups' />,
+    header: ({ column }) => <DataTableColumnHeader column={column} title='Total Project Choices' />,
     cell: ({ row }) => <div>{row.getValue('totalSignUps')}</div>
   },
   {
     accessorKey: 'vacancywaitlist',
     header: ({ column }) => <DataTableColumnHeader column={column} title='Vacancy/Waitlist' />,
     cell: ({ row }) => <div>{row.getValue('vacancywaitlist')}</div>
-  },
-  {
-    id: 'actions',
-    cell: ({ row }) => <DataTableRowActions row={row} />
   }
 ]
