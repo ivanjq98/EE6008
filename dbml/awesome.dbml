@@ -198,7 +198,7 @@ Table Grade {
 
 Table GradeType {
   id String [pk]
-  name String [unique, not null]
+  name String [not null]
   weightage Int [not null, default: 0]
   semesterId String [not null]
   createdAt DateTime [default: `now()`, not null]
