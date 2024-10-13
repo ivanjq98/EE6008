@@ -59,6 +59,7 @@ export function MilestoneList({ milestones, onMilestoneUpdate, currentUserEmail 
     setEditingMilestone(milestone.id)
     setEditedData({
       objective: milestone.objective,
+      description: milestone.description,
       startDate: milestone.startDate,
       endDate: milestone.endDate,
       status: milestone.status
@@ -138,6 +139,12 @@ export function MilestoneList({ milestones, onMilestoneUpdate, currentUserEmail 
                   className='mb-2'
                 />
                 <Input
+                  value={editedData.description || ''}
+                  onChange={(e) => setEditedData({ ...editedData, description: e.target.value })}
+                  placeholder='description'
+                  className='mb-2'
+                />
+                <Input
                   type='date'
                   value={editedData.startDate?.toISOString().split('T')[0] || ''}
                   onChange={(e) => setEditedData({ ...editedData, startDate: new Date(e.target.value) })}
@@ -203,7 +210,7 @@ export function MilestoneList({ milestones, onMilestoneUpdate, currentUserEmail 
                 {milestone.Remark.map((remark, index) => (
                   <p key={index} className='text-gray-600'>
                     <span className='font-medium'>{remark.faculty.user.name}:</span> {remark.remarks}
-                    <span style={{ float: 'right', fontSize: "16px" }}> {format(remark.updatedAt, 'PPP h:mm a')}</span>
+                    <span style={{ float: 'right', fontSize: '16px' }}> {format(remark.updatedAt, 'PPP h:mm a')}</span>
                   </p>
                 ))}
               </div>
