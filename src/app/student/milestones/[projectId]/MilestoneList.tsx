@@ -203,7 +203,7 @@ export function MilestoneList({ milestones, onMilestoneUpdate, currentUserEmail 
                 {milestone.Remark.map((remark, index) => (
                   <p key={index} className='text-gray-600'>
                     <span className='font-medium'>{remark.faculty.user.name}:</span> {remark.remarks}
-                    <span style={{ float: 'right' }}> {format(remark.updatedAt, 'PPP h:mm a')}</span>
+                    <span style={{ float: 'right', fontSize: "16px" }}> {format(remark.updatedAt, 'PPP h:mm a')}</span>
                   </p>
                 ))}
               </div>
