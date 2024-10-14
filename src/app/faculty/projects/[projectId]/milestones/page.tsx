@@ -45,7 +45,7 @@ export default async function FacultyProjectMilestonesPage({ params }: PageProps
             user: true,
             Milestone: {
               orderBy: {
-                updatedAt: 'asc'
+                startDate: 'asc'
               },
               include: {
                 Remark: {
