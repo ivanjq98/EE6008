@@ -4,9 +4,6 @@ import { StudentMark } from './columns'
 import { ClientDataTable } from './ClientDataTable'
 import StudentMarksOverviewPage from './overviewDownload'
 import { downloadSupervisorModeratorMarks } from './overviewDownload2'
-import { authOptions } from '@/src/lib/auth'
-import { getServerSession } from 'next-auth'
-import { redirect } from 'next/navigation'
 
 async function getCurrentSemesterId() {
   const currentSemester = await prisma.semester.findFirst({
@@ -21,22 +18,10 @@ async function getCurrentSemesterId() {
   return currentSemester.id
 }
 
-async function getStudentMarks(currentSemesterId: string, leaderId: string) {
-  const leaderProgram = await prisma.programme.findFirst({
-    where: { leaderId: leaderId },
-    select: { id: true }
-  })
-
-  if (!leaderProgram) {
-    return null
-  }
-
+async function getStudentMarks(currentSemesterId: string) {
   const studentMarks = await prisma.student.findMany({
     where: {
-      projectId: { not: null },
-      project: {
-        programme: { id: leaderProgram.id }
-      }
+      projectId: { not: null }
     },
     include: {
       user: true,
@@ -137,47 +122,19 @@ async function getStudentMarks(currentSemesterId: string, leaderId: string) {
 }
 
 export default async function StudentMarksOverviewPageWrapper() {
-  const session = await getServerSession(authOptions)
-  const user = session?.user
+  const currentSemesterId = await getCurrentSemesterId()
+  const { formattedData, assessmentComponents } = await getStudentMarks(currentSemesterId)
 
-  if (!user?.facultyId) {
-    redirect('/login')
-  }
-
-  try {
-    const currentSemesterId = await getCurrentSemesterId()
-    const result = await getStudentMarks(currentSemesterId, user.facultyId)
-
-    if (!result) {
-      return (
-        <div>
-          <h1>Access Denied</h1>
-          <p>You do not have permission to view this page.</p>
-        </div>
-      )
-    }
-
-    const { formattedData, assessmentComponents } = result
-
-    return (
-      <div className='container mx-auto py-10'>
-        <h1 className='mb-5 text-2xl font-bold'>Student Marks Overview</h1>
-        <Suspense fallback={<div>Loading...</div>}>
-          <StudentMarksOverviewPage
-            formattedData={formattedData}
-            assessmentComponents={assessmentComponents}
-            downloadSupervisorModeratorMarks={downloadSupervisorModeratorMarks}
-          />
-        </Suspense>
-      </div>
-    )
-  } catch (error) {
-    console.error('Error in StudentMarksOverviewPageWrapper:', error)
-    return (
-      <div>
-        <h1>Error</h1>
-        <p>An error occurred while fetching the data. Please try again later.</p>
-      </div>
-    )
-  }
+  return (
+    <div className='container mx-auto py-10'>
+      <h1 className='mb-5 text-2xl font-bold'>Student Marks Overview</h1>
+      <Suspense fallback={<div>Loading...</div>}>
+        <StudentMarksOverviewPage
+          formattedData={formattedData}
+          assessmentComponents={assessmentComponents}
+          downloadSupervisorModeratorMarks={downloadSupervisorModeratorMarks}
+        />
+      </Suspense>
+    </div>
+  )
 }
