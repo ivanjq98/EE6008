@@ -44,9 +44,6 @@ export default async function FacultyProjectMilestonesPage({ params }: PageProps
           include: {
             user: true,
             Milestone: {
-              orderBy: {
-                startDate: 'asc'
-              },
               include: {
                 Remark: {
                   orderBy: {
@@ -64,6 +61,16 @@ export default async function FacultyProjectMilestonesPage({ params }: PageProps
       return <div className='container mx-auto p-4'>Project not found or you don&apos;t have access to it.</div>
     }
 
+    // Flatten and sort all milestones
+    const allMilestones = project.students
+      .flatMap((student) =>
+        student.Milestone.map((milestone) => ({
+          ...milestone,
+          studentName: student.user.name
+        }))
+      )
+      .sort((a, b) => a.startDate.getTime() - b.startDate.getTime())
+
     return (
       <div className='container mx-auto p-4'>
         <h1 className='mb-4 text-2xl font-bold'>Milestones for {project.title}</h1>
@@ -73,48 +80,46 @@ export default async function FacultyProjectMilestonesPage({ params }: PageProps
         >
           View Project Timeline
         </Link>
-        {project.students.flatMap((student) =>
-          student.Milestone.map((milestone) => (
-            <div key={milestone.id} className='mb-4 rounded border p-4'>
-              <h2 className='text-lg font-semibold'>Objective: {milestone.objective}</h2>
-              {milestone.description && <p className='text-gray-600'>Description: {milestone.description}</p>}
+        {allMilestones.map((milestone) => (
+          <div key={milestone.id} className='mb-4 rounded border p-4'>
+            <h2 className='text-lg font-semibold'>Objective: {milestone.objective}</h2>
+            {milestone.description && <p className='text-gray-600'>Description: {milestone.description}</p>}
 
-              <div className='mt-2 grid grid-cols-2 gap-2'>
-                <p>
-                  <span className='font-medium'>Start Date:</span>{' '}
-                  {formatInTimeZone(milestone.startDate, 'Asia/Singapore', 'PPP h:mm a')}
-                </p>
-                <p>
-                  <span className='font-medium'>End Date:</span>{' '}
-                  {formatInTimeZone(milestone.endDate, 'Asia/Singapore', 'PPP h:mm a')}
-                </p>
-                <p>
-                  <span className='font-medium'>Status:</span> {formatMilestoneStatus(milestone.status)}
-                </p>
-                <p>
-                  <span className='font-medium'>Updated At:</span>{' '}
-                  {formatInTimeZone(milestone.updatedAt, 'Asia/Singapore', 'PPP h:mm a')}
-                </p>
-                <p>
-                  <span className='font-medium'>Student:</span> {student.user.name}
-                </p>
-              </div>
-              {milestone.Remark.length > 0 && (
-                <div className='mt-4'>
-                  <h4 className='font-semibold'>Previous Remarks:</h4>
-                  {milestone.Remark.map((remark) => (
-                    <p key={remark.id} className='mt-1 text-gray-600'>
-                      {remark.remarks} - {formatInTimeZone(remark.updatedAt, 'Asia/Singapore', 'PPP h:mm a')}
-                    </p>
-                  ))}
-                </div>
-              )}
-              <div className='mt-4'>
-                <FacultyRemarkForm milestoneId={milestone.id} />
-              </div>
+            <div className='mt-2 grid grid-cols-2 gap-2'>
+              <p>
+                <span className='font-medium'>Start Date:</span>{' '}
+                {formatInTimeZone(milestone.startDate, 'Asia/Singapore', 'PPP h:mm a')}
+              </p>
+              <p>
+                <span className='font-medium'>End Date:</span>{' '}
+                {formatInTimeZone(milestone.endDate, 'Asia/Singapore', 'PPP h:mm a')}
+              </p>
+              <p>
+                <span className='font-medium'>Status:</span> {formatMilestoneStatus(milestone.status)}
+              </p>
+              <p>
+                <span className='font-medium'>Updated At:</span>{' '}
+                {formatInTimeZone(milestone.updatedAt, 'Asia/Singapore', 'PPP h:mm a')}
+              </p>
+              <p>
+                <span className='font-medium'>Student:</span> {milestone.studentName}
+              </p>
             </div>
-          ))
-        )}
+            {milestone.Remark.length > 0 && (
+              <div className='mt-4'>
+                <h4 className='font-semibold'>Previous Remarks:</h4>
+                {milestone.Remark.map((remark) => (
+                  <p key={remark.id} className='mt-1 text-gray-600'>
+                    {remark.remarks} - {formatInTimeZone(remark.updatedAt, 'Asia/Singapore', 'PPP h:mm a')}
+                  </p>
+                ))}
+              </div>
+            )}
+            <div className='mt-4'>
+              <FacultyRemarkForm milestoneId={milestone.id} />
+            </div>
+          </div>
+        ))}
       </div>
     )
   } catch (error) {

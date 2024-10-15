@@ -34,13 +34,21 @@ export default async function FacultyProjectsPage() {
 
   const projects = await prisma.project.findMany({
     where: {
-      facultyId: session.user.facultyId
+      faculties: {
+        some: {
+          facultyId: session.user.facultyId
+        }
+      },
+      programme: {
+        semesterId: activeSemester.id
+      }
     },
     select: {
       id: true,
       title: true
     }
   })
+
 
   return (
     <div className='container mx-auto p-4'>
