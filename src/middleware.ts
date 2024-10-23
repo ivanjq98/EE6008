@@ -4,6 +4,13 @@ import { NextResponse } from 'next/server'
 import type { NextRequestWithAuth } from 'next-auth/middleware'
 export default withAuth(
   function middleware(req: NextRequestWithAuth) {
+    const response = NextResponse.next()
+
+    response.headers.set(
+      'Content-Security-Policy',
+      "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline';"
+    )
+
     if (req.nextUrl.pathname.startsWith('/faculty') && req.nextauth.token?.role !== 'FACULTY') {
       return NextResponse.rewrite(new URL('/denied', req.url))
     }

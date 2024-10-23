@@ -158,30 +158,34 @@ export function AppealsList({ appeals, projects }: AppealsListProps) {
               <TableCell>{appeal.requestedProject.title}</TableCell>
               <TableCell>{appeal.status}</TableCell>
               <TableCell>{new Date(appeal.createdAt).toLocaleString()}</TableCell>
-              <TableCell>
+
+              <TableCell className='space-y-2'>
                 <Button
                   onClick={() => handleViewReason(appeal)}
                   variant='outline'
-                  className='mt-2 inline-flex justify-center rounded-md border border-transparent bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2'
+                  className='w-full justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2'
                 >
                   View Reason
                 </Button>
                 {appeal.status === 'PENDING' && (
-                  <>
-                    <Button onClick={() => handleAppealAction(appeal.id, 'approve')} className='mr-2'>
+                  <div className='flex space-x-2'>
+                    <Button
+                      onClick={() => handleAppealAction(appeal.id, 'approve')}
+                      className='flex-1 bg-green-600 hover:bg-green-700 focus:ring-green-500'
+                    >
                       Approve
                     </Button>
                     <Button
                       onClick={() => handleAppealAction(appeal.id, 'reject')}
                       variant='destructive'
-                      className='mr-2'
+                      className='flex-1'
                     >
                       Reject
                     </Button>
-                  </>
+                  </div>
                 )}
                 {appeal.status !== 'PENDING' && (
-                  <Button onClick={() => handleEdit(appeal)} variant='outline'>
+                  <Button onClick={() => handleEdit(appeal)} variant='outline' className='w-full'>
                     Edit Status
                   </Button>
                 )}
