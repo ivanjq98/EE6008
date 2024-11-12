@@ -1,10 +1,13 @@
 import { notFound, redirect } from 'next/navigation'
 import { getServerSession } from 'next-auth'
 import { StudentMilestoneForm } from './StudentMilestoneForm'
-import { MilestoneListWrapper } from './MilestoneListWrapper' // We'll create this
+import { MilestoneListWrapper } from './MilestoneListWrapper'
 import { prisma } from '@/src/lib/prisma'
 import { authOptions } from '@/src/lib/auth'
-import { ExtendedMilestone } from './MilestoneList' // Make sure to import this type
+import { ExtendedMilestone } from './MilestoneList'
+import Link from 'next/link'
+import { Button } from '@/src/components/ui/button'
+import { Header } from '@/src/components/header'
 
 interface PageProps {
   params: { projectId: string }
@@ -13,7 +16,7 @@ interface PageProps {
 const StudentMilestonePage = async ({ params }: PageProps) => {
   const session = await getServerSession(authOptions)
 
-  if (!session || !session.user.studentId || !session.user.email) {
+  if (!session?.user?.studentId || !session?.user?.email) {
     redirect('/login')
   }
 
@@ -63,11 +66,19 @@ const StudentMilestonePage = async ({ params }: PageProps) => {
 
     return (
       <div className='container mx-auto p-4'>
-        <h1 className='mb-4 text-2xl font-bold'>{project.title}</h1>
+        <Header title={project.title} description='Manage your project milestones and view timeline' />
+
+        <div className='mb-6 flex items-center justify-between'>
+          <Link href={`/student/gantt-chart/`}>
+            <Button variant='secondary'>View Gantt Chart</Button>
+          </Link>
+        </div>
+
         <MilestoneListWrapper
           milestones={project.Milestone as ExtendedMilestone[]}
           currentUserEmail={session.user.email}
         />
+
         <div className='mt-8'>
           <h2 className='mb-4 text-xl font-semibold'>Create New Milestone</h2>
           <StudentMilestoneForm projectId={project.id} />
@@ -78,8 +89,7 @@ const StudentMilestonePage = async ({ params }: PageProps) => {
     console.error('Error fetching project:', error)
     return (
       <div className='container mx-auto p-4'>
-        <h1 className='mb-4 text-2xl font-bold'>Error</h1>
-        <p>An error occurred while loading the project. Please try again later.</p>
+        <Header title='Error' description='An error occurred while loading the project. Please try again later.' />
       </div>
     )
   }

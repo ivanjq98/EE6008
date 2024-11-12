@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/src/lib/auth'
-import { updateAppealStatus } from '@/src/app/actions/admin/appeal' // You'll need to create this function
+import { updateAppealStatus } from '@/src/app/actions/admin/appeal'
 
 export async function PUT(request: Request, { params }: { params: { id: string } }) {
   try {
