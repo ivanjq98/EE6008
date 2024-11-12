@@ -4,6 +4,7 @@ import { Suspense, useCallback } from 'react'
 import { StudentMark } from './columns'
 import { ClientDataTable } from './ClientDataTable'
 import { Button } from '@/src/components/ui/button'
+import Link from 'next/link'
 
 interface StudentMarksOverviewPageProps {
   formattedData: StudentMark[]
@@ -91,6 +92,9 @@ export default function StudentMarksOverviewPage({
         <div className='space-x-4'>
           <Button onClick={() => downloadAllocationResults(formattedData)}>Download Overall Marks CSV</Button>
           <Button onClick={handleDownloadSupervisorModeratorMarks}>Download Supervisor/Moderator Marks CSV</Button>
+          <Link href={`/faculty/programme-statistics/`}>
+            <Button style={{ backgroundColor: 'green' }}>View Module Statistics</Button>
+          </Link>
         </div>
       </div>
       <p className='mb-4 text-sm text-gray-600'>

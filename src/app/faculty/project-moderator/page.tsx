@@ -4,6 +4,10 @@ import { Header } from '@/src/components/header'
 import { AssignModeratorsTable } from '@/src/app/faculty/project-moderator/project-moderators-table'
 import { authOptions } from '@/src/lib/auth'
 import { prisma } from '@/src/lib/prisma'
+import { Alert, AlertDescription, AlertTitle } from '@/src/components/ui/alert'
+import { InfoIcon } from 'lucide-react'
+import Link from 'next/link'
+import { format } from 'date-fns'
 
 const AssignModeratorsPage = async () => {
   const session = await getServerSession(authOptions)
@@ -18,8 +22,8 @@ const AssignModeratorsPage = async () => {
     include: {
       timeline: {
         select: {
-          facultyProposalReviewStart: true,
-          facultyProposalReviewEnd: true
+          facultyMarkEntryStart: true,
+          facultyMarkEntryEnd: true
         }
       }
     }
@@ -30,11 +34,28 @@ const AssignModeratorsPage = async () => {
   }
 
   const currentDate = new Date()
-  const reviewStart = new Date(activeSemester.timeline.facultyProposalReviewStart)
-  const reviewEnd = new Date(activeSemester.timeline.facultyProposalReviewEnd)
+  const reviewStart = new Date(activeSemester.timeline.facultyMarkEntryStart)
+  const reviewEnd = new Date(activeSemester.timeline.facultyMarkEntryEnd)
 
-  if (currentDate < reviewStart || currentDate > reviewEnd) {
-    return <Header title='Assign Moderators' description='Moderator assignment is not open at this time.' />
+  if (currentDate >= reviewStart) {
+    return (
+      <div className='container mx-auto p-4'>
+        <Header title='Moderator Assignment Closed' description='The moderator assignment period has ended.' />
+        <Alert>
+          <InfoIcon className='h-4 w-4' />
+          <AlertTitle>Assignment Period Ended</AlertTitle>
+          <AlertDescription>
+            The moderator assignment period ended on {format(reviewStart, 'PPP')} at {format(reviewStart, 'h:mm a')}.
+            Mark entry period is now {currentDate > reviewEnd ? 'closed' : 'open'}.
+          </AlertDescription>
+        </Alert>
+        <div className='mt-4'>
+          <Link href='/faculty' className='text-primary hover:underline'>
+            Return to dashboard
+          </Link>
+        </div>
+      </div>
+    )
   }
 
   const projects = await prisma.project.findMany({

@@ -8,6 +8,7 @@ import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, Tabl
 import { authOptions } from '@/src/lib/auth'
 import { prisma } from '@/src/lib/prisma'
 import { Prisma } from '@prisma/client'
+import { formatInTimeZone } from 'date-fns-tz'
 
 type ProjectWithReviews = Prisma.ProjectGetPayload<{
   include: {
@@ -94,7 +95,7 @@ const ProjectPeerReviewPage = async ({ params }: { params: { projectId: string }
                   <TableRow key={review.id}>
                     <TableCell>{review.reviewee.user.name}</TableCell>
                     <TableCell>{review.rank}</TableCell>
-                    <TableCell>{new Date(review.updatedAt).toLocaleString()}</TableCell>
+                    <TableCell>{formatInTimeZone(review.updatedAt, 'Asia/Singapore', 'PPP h:mm a')}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
