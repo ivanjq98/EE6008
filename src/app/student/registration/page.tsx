@@ -1,5 +1,4 @@
 import { getServerSession } from 'next-auth'
-
 import { Header } from '@/src/components/header'
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/src/components/ui/table'
 import { authOptions } from '@/src/lib/auth'

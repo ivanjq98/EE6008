@@ -105,10 +105,6 @@ export default function StudentMarksOverviewPage({
 
   return (
     <div className='container mx-auto py-10'>
-      <Header
-        title='Student Marks Overview'
-        description='Download the CSV to view the marks discrepancy for each students components'
-      />
       <div className='mb-5 flex items-center justify-between'>
         <div className='space-x-4'>
           <Button onClick={() => downloadAllocationResults(formattedData)}>Download Overall Marks CSV</Button>

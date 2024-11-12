@@ -5,9 +5,9 @@ import { MilestoneListWrapper } from './MilestoneListWrapper'
 import { prisma } from '@/src/lib/prisma'
 import { authOptions } from '@/src/lib/auth'
 import { ExtendedMilestone } from './MilestoneList'
-import Link from 'next/link'
-import { Button } from '@/src/components/ui/button'
 import { Header } from '@/src/components/header'
+import { Card, CardContent } from '@/src/components/ui/card'
+import Link from 'next/link'
 
 interface PageProps {
   params: { projectId: string }
@@ -21,9 +21,30 @@ const StudentMilestonePage = async ({ params }: PageProps) => {
   }
 
   try {
-    const project = await prisma.project.findUnique({
+    const activeSemester = await prisma.semester.findFirst({
       where: {
-        id: params.projectId
+        active: true
+      },
+      select: {
+        id: true,
+        name: true
+      }
+    })
+
+    if (!activeSemester) {
+      return (
+        <div className='container mx-auto p-4'>
+          <Header title='Error' description='No active semester found.' />
+        </div>
+      )
+    }
+
+    const project = await prisma.project.findFirst({
+      where: {
+        id: params.projectId,
+        programme: {
+          semesterId: activeSemester.id
+        }
       },
       include: {
         Milestone: {
@@ -61,28 +82,40 @@ const StudentMilestonePage = async ({ params }: PageProps) => {
     })
 
     if (!project) {
-      notFound()
+      return (
+        <section className='space-y-6 py-6'>
+          <Header
+            title='Milestone & Timeline'
+            description="The requested project could not be found or you don't have access to it."
+          />
+          <div>
+            <Link className='text-primary hover:underline' href='/student'>
+              Back to dashboard
+            </Link>
+          </div>
+        </section>
+      )
     }
 
     return (
       <div className='container mx-auto p-4'>
-        <Header title={project.title} description='Manage your project milestones and view timeline' />
+        <Header title={project.title} description='Manage your project milestones and track progress' />
 
-        <div className='mb-6 flex items-center justify-between'>
-          <Link href={`/student/gantt-chart/`}>
-            <Button variant='secondary'>View Gantt Chart</Button>
-          </Link>
-        </div>
+        <Card className='mt-6'>
+          <CardContent className='p-6'>
+            <MilestoneListWrapper
+              milestones={project.Milestone as ExtendedMilestone[]}
+              currentUserEmail={session.user.email}
+            />
+          </CardContent>
+        </Card>
 
-        <MilestoneListWrapper
-          milestones={project.Milestone as ExtendedMilestone[]}
-          currentUserEmail={session.user.email}
-        />
-
-        <div className='mt-8'>
-          <h2 className='mb-4 text-xl font-semibold'>Create New Milestone</h2>
-          <StudentMilestoneForm projectId={project.id} />
-        </div>
+        <Card className='mt-8'>
+          <CardContent className='p-6'>
+            <h2 className='mb-4 text-xl font-semibold'>Create New Milestone</h2>
+            <StudentMilestoneForm projectId={project.id} />
+          </CardContent>
+        </Card>
       </div>
     )
   } catch (error) {

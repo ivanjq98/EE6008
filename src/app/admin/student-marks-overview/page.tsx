@@ -4,6 +4,7 @@ import { StudentMark } from './columns'
 import { ClientDataTable } from './ClientDataTable'
 import StudentMarksOverviewPage from './overviewDownload'
 import { downloadSupervisorModeratorMarks } from './overviewDownload2'
+import { Header } from '@/src/components/header'
 
 async function getCurrentSemesterId() {
   const currentSemester = await prisma.semester.findFirst({
@@ -127,7 +128,10 @@ export default async function StudentMarksOverviewPageWrapper() {
 
   return (
     <div className='container mx-auto py-10'>
-      <h1 className='mb-5 text-2xl font-bold'>Student Marks Overview</h1>
+      <Header
+        title='Student Marks Overview'
+        description='Download the CSV to view the marks discrepancy for each students components'
+      />
       <Suspense fallback={<div>Loading...</div>}>
         <StudentMarksOverviewPage
           formattedData={formattedData}
