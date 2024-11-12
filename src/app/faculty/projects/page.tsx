@@ -14,15 +14,41 @@ export default async function FacultyProjectsPage() {
     redirect('/login')
   }
 
+  const activeSemester = await prisma.semester.findFirst({
+    where: {
+      active: true
+    },
+    select: {
+      id: true,
+      name: true
+    }
+  })
+
+  if (!activeSemester) {
+    return (
+      <div className='container mx-auto p-4'>
+        <Header title='Error' description='No active semester found.' />
+      </div>
+    )
+  }
+
   const projects = await prisma.project.findMany({
     where: {
-      facultyId: session.user.facultyId
+      faculties: {
+        some: {
+          facultyId: session.user.facultyId
+        }
+      },
+      programme: {
+        semesterId: activeSemester.id
+      }
     },
     select: {
       id: true,
       title: true
     }
   })
+
 
   return (
     <div className='container mx-auto p-4'>

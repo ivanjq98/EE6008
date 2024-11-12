@@ -8,8 +8,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { updateMilestone, deleteMilestone } from '@/src/server/data/milestone'
 import { toast } from 'sonner'
 import { X } from 'lucide-react'
+import { format } from 'date-fns'
 
 interface ExtendedRemark {
+  updatedAt: any
   id: string
   remarks: string
   faculty: {
@@ -18,6 +20,18 @@ interface ExtendedRemark {
       email: string
     }
   }
+}
+
+const formatMilestoneStatus = (status: string): string => {
+  const statusMap: { [key: string]: string } = {
+    NOT_STARTED: 'Not started (0%)',
+    STARTED: 'Started (20%)',
+    NEARLY_HALF: 'Nearly Half (40%)',
+    HALF_WAY_THERE: 'Half Way There (60%)',
+    ALMOST_DONE: 'Almost Done (80%)',
+    COMPLETED: 'Completed (100%)'
+  }
+  return statusMap[status] || status
 }
 
 export type ExtendedMilestone = Milestone & {
@@ -45,6 +59,7 @@ export function MilestoneList({ milestones, onMilestoneUpdate, currentUserEmail 
     setEditingMilestone(milestone.id)
     setEditedData({
       objective: milestone.objective,
+      description: milestone.description,
       startDate: milestone.startDate,
       endDate: milestone.endDate,
       status: milestone.status
@@ -98,7 +113,7 @@ export function MilestoneList({ milestones, onMilestoneUpdate, currentUserEmail 
   }
 
   return (
-    <div>
+    <div className='ml-0 max-w-md overflow-hidden rounded-xl bg-white p-6 shadow-md md:max-w-2xl'>
       <h2 className='mb-4 text-xl font-semibold'>Project Milestones</h2>
       {milestones.length === 0 ? (
         <p>No milestones created yet.</p>
@@ -121,6 +136,12 @@ export function MilestoneList({ milestones, onMilestoneUpdate, currentUserEmail 
                   value={editedData.objective || ''}
                   onChange={(e) => setEditedData({ ...editedData, objective: e.target.value })}
                   placeholder='Objective'
+                  className='mb-2'
+                />
+                <Input
+                  value={editedData.description || ''}
+                  onChange={(e) => setEditedData({ ...editedData, description: e.target.value })}
+                  placeholder='description'
                   className='mb-2'
                 />
                 <Input
@@ -152,7 +173,11 @@ export function MilestoneList({ milestones, onMilestoneUpdate, currentUserEmail 
                   </SelectContent>
                 </Select>
                 <div className='mt-2'>
-                  <Button onClick={() => handleSave(milestone)} className='mr-2' disabled={isLoading}>
+                  <Button
+                    onClick={() => handleSave(milestone)}
+                    className='mt-2 inline-flex justify-center rounded-md border border-transparent bg-yellow-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2'
+                    disabled={isLoading}
+                  >
                     {isLoading ? 'Saving...' : 'Save'}
                   </Button>
                   <Button onClick={handleCancel} variant='outline' disabled={isLoading}>
@@ -164,11 +189,17 @@ export function MilestoneList({ milestones, onMilestoneUpdate, currentUserEmail 
               <>
                 <h4 className='font-semibold'>Objective: {milestone.objective}</h4>
                 {milestone.description && <p className='text-gray-600'>Description: {milestone.description}</p>}
+                <br />
                 <p>Start Date: {new Date(milestone.startDate).toLocaleDateString()}</p>
                 <p>End Date: {new Date(milestone.endDate).toLocaleDateString()}</p>
-                <p>Status: {milestone.status}</p>
+                <p>Status: {formatMilestoneStatus(milestone.status)}</p>
+                <br />
                 <p className='text-sm text-gray-500'>Created by: {milestone.student.user.name}</p>
-                <Button onClick={() => handleEdit(milestone)} className='mt-2'>
+                <p className='text-sm text-gray-500'>Updated by: {format(milestone.updatedAt, 'PPP h:mm a')}</p>
+                <Button
+                  onClick={() => handleEdit(milestone)}
+                  className='mt-2 inline-flex justify-center rounded-md border border-transparent bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2'
+                >
                   Edit
                 </Button>
               </>
@@ -179,6 +210,7 @@ export function MilestoneList({ milestones, onMilestoneUpdate, currentUserEmail 
                 {milestone.Remark.map((remark, index) => (
                   <p key={index} className='text-gray-600'>
                     <span className='font-medium'>{remark.faculty.user.name}:</span> {remark.remarks}
+                    <span style={{ float: 'right', fontSize: '16px' }}> {format(remark.updatedAt, 'PPP h:mm a')}</span>
                   </p>
                 ))}
               </div>

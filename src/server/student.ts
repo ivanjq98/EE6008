@@ -30,6 +30,7 @@ export const getAvailableProjects = async () => {
 
   const projects = data.map((project) => ({
     id: project.id,
+    projectCode: project.projectCode,
     title: project.title,
     description: project.description,
     programme: project.programme.name,

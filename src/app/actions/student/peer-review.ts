@@ -32,7 +32,7 @@ export async function reviewPeers(
     revalidatePath('/student/peer-review/')
 
     return {
-      message: `Project successfully registered!`,
+      message: `Your peer review has been submitted!`,
       status: 'OK',
       data: res
     }

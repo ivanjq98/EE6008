@@ -24,10 +24,6 @@ export const studentConfig: StudentConfig = {
       href: '/student/milestones'
     },
     {
-      title: 'Timeline',
-      href: '/student/gantt-chart'
-    },
-    {
       title: 'Grades',
       href: '/student/grades'
     }
@@ -184,6 +180,10 @@ export const adminConfig: AdminConfig = {
     {
       title: 'Statistics',
       href: '/admin/statistics'
+    },
+    {
+      title: 'Student Appeal',
+      href: '/admin/appeals'
     }
   ],
   sideNav: [
@@ -239,6 +239,12 @@ export const adminConfig: AdminConfig = {
       title: 'Upload',
       href: '/admin/registration/upload',
       icon: 'upload',
+      type: 'link'
+    },
+    {
+      title: 'Student Appeal',
+      href: '/admin/appeals',
+      icon: 'help',
       type: 'link'
     },
     {

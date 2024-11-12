@@ -80,6 +80,20 @@ const MarkPage = async () => {
           ))}
         </ol>
       </div>
+      <br />
+      <Header title='Student Peer Review' description='View the student peer review' />
+      <div>
+        <TypographyP>Select project to view peer reviews:</TypographyP>
+        <ol className='my-4 ml-6 list-decimal [&>li]:mt-2'>
+          {projectsWithRoles.map(({ project, role }) => (
+            <li key={project.id}>
+              <Link className='underline-offset-4 hover:underline' href={`/faculty/peer-review/${project.id}`}>
+                {project.title} - {role === 'SUPERVISOR' ? 'Supervisor' : 'Moderator'}
+              </Link>
+            </li>
+          ))}
+        </ol>
+      </div>
     </div>
   )
 }

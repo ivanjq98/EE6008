@@ -8,7 +8,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@
 
 interface ClientDataTableProps {
   assessmentComponents: string[]
-  data: StudentMark[] // Changed from (StudentMark & { facultyRole: FacultyRole })[]
+  data: StudentMark[]
 }
 
 export function ClientDataTable({ assessmentComponents, data }: ClientDataTableProps) {

@@ -93,7 +93,7 @@ export function FacultyRemarkForm({ milestoneId }: FacultyRemarkFormProps) {
         <p className='text-sm text-gray-600'>{existingRemark.remarks}</p>
         <button
           onClick={() => setIsEditing(true)}
-          className='mt-2 inline-flex justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2'
+          className='mt-2 inline-flex justify-center rounded-md border border-transparent bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2'
         >
           Edit Remark
         </button>
@@ -120,7 +120,7 @@ export function FacultyRemarkForm({ milestoneId }: FacultyRemarkFormProps) {
       <button
         type='submit'
         disabled={isSubmitting}
-        className='inline-flex justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2'
+        className='inline-flex justify-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2'
       >
         {isSubmitting ? 'Submitting...' : existingRemark ? 'Update Remark' : 'Submit Remark'}
       </button>

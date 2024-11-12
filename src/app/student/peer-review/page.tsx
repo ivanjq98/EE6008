@@ -101,27 +101,6 @@ const PeerReview = async () => {
     <section className='space-y-6 py-6'>
       <Header title='Peer Review' description='Rank your peers here.' />
       <PeerReviewSection peers={peers} reviewerId={studentId} projectId={studentData.projectId} />
-      {peerReviewData.length === 0 ? (
-        <p className='text-md text-muted-foreground md:text-lg'>You have not registered any project</p>
-      ) : (
-        <Table className='border'>
-          <TableCaption>Submitted peer review.</TableCaption>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Student Name</TableHead>
-              <TableHead>Rank</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {peerReviewData.map((review) => (
-              <TableRow key={review.id}>
-                <TableCell className='font-medium'>{review.reviewee.user.name}</TableCell>
-                <TableCell>{review.rank}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      )}
     </section>
   )
 }

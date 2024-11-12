@@ -26,7 +26,7 @@ interface DataTableRowActionsProps<TData> {
 export function DataTableRowActions<TData>({ row }: DataTableRowActionsProps<TData>) {
   const projectData = row.original as Project
 
-  const { title, description, faculty, id, programme, projectCode, semester } = projectData
+  const { title, description, supervisor, moderator, id, programme, projectCode, semester } = projectData
 
   return (
     <Sheet>
@@ -62,8 +62,13 @@ export function DataTableRowActions<TData>({ row }: DataTableRowActionsProps<TDa
             <Separator />
           </div>
           <div className='space-y-2'>
-            <TypographyH4>Faculty:</TypographyH4>
-            <TypographyP>{faculty}</TypographyP>
+            <TypographyH4>Supervisor:</TypographyH4>
+            <TypographyP>{supervisor}</TypographyP>
+            <Separator />
+          </div>
+          <div className='space-y-2'>
+            <TypographyH4>Moderator:</TypographyH4>
+            <TypographyP>{moderator}</TypographyP>
             <Separator />
           </div>
           <div className='space-y-2'>

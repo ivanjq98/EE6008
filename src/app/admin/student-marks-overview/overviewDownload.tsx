@@ -9,6 +9,24 @@ import { Header } from '@/src/components/header'
 interface StudentMarksOverviewPageProps {
   formattedData: StudentMark[]
   assessmentComponents: string[]
+  downloadSupervisorModeratorMarks: (data: { formattedData: StudentMark[]; assessmentComponents: string[] }) => void
+}
+
+const calculateMaxDiscrepancy = (student: StudentMark, components: string[]): number => {
+  let maxDiscrepancy = 0
+  components.forEach((component) => {
+    const grade = student[component] as {
+      supervisor: number | null
+      moderator: number | null
+      weighted: number | null
+      weightage: number
+    }
+    if (grade.supervisor !== null && grade.moderator !== null) {
+      const discrepancy = (Math.abs(grade.supervisor - grade.moderator) / grade.weightage) * 100
+      maxDiscrepancy = Math.max(maxDiscrepancy, discrepancy)
+    }
+  })
+  return maxDiscrepancy
 }
 
 function calculateDiscrepancy(
@@ -28,7 +46,8 @@ function calculateDiscrepancy(
 
 export default function StudentMarksOverviewPage({
   formattedData,
-  assessmentComponents
+  assessmentComponents,
+  downloadSupervisorModeratorMarks
 }: StudentMarksOverviewPageProps) {
   const downloadAllocationResults = useCallback(
     (data: StudentMark[]) => {
@@ -37,13 +56,20 @@ export default function StudentMarksOverviewPage({
         'Student Name',
         'Project Title',
         'Semester',
+<<<<<<< HEAD
         ...assessmentComponents.flatMap((component) => [`${component} (Weighted)`, `${component} (Discrepancy)`]),
         'Total Score'
+=======
+        ...assessmentComponents,
+        'Total Score',
+        'Max Discrepancy (%)'
+>>>>>>> security
       ]
       const csvContent = [
         headers.join(','),
-        ...data.map((student) =>
-          [
+        ...data.map((student) => {
+          const maxDiscrepancy = calculateMaxDiscrepancy(student, assessmentComponents)
+          return [
             student.name,
             student.projectTitle,
             student.semester,
@@ -57,9 +83,10 @@ export default function StudentMarksOverviewPage({
               const discrepancy = calculateDiscrepancy(grade.supervisor, grade.moderator, grade.weightage)
               return [grade.weighted !== null ? grade.weighted.toFixed(2) : '', discrepancy]
             }),
-            student.totalScore.toFixed(2)
+            student.totalScore.toFixed(2),
+            maxDiscrepancy.toFixed(2)
           ].join(',')
-        )
+        })
       ].join('\n')
 
       // Create Blob and download
@@ -77,6 +104,9 @@ export default function StudentMarksOverviewPage({
     },
     [assessmentComponents]
   )
+  const handleDownloadSupervisorModeratorMarks = useCallback(() => {
+    downloadSupervisorModeratorMarks({ formattedData, assessmentComponents })
+  }, [downloadSupervisorModeratorMarks, formattedData, assessmentComponents])
 
   return (
     <div className='container mx-auto py-10'>
@@ -85,8 +115,18 @@ export default function StudentMarksOverviewPage({
         description='Download the CSV to view the marks discrepancy for each students components'
       />
       <div className='mb-5 flex items-center justify-between'>
-        <Button onClick={() => downloadAllocationResults(formattedData)}>Download CSV</Button>
+        <div className='space-x-4'>
+          <Button onClick={() => downloadAllocationResults(formattedData)}>Download Overall Marks CSV</Button>
+          <Button onClick={handleDownloadSupervisorModeratorMarks}>Download Supervisor/Moderator Marks CSV</Button>
+        </div>
       </div>
+      <p className='mb-4 text-sm text-gray-600'>
+        The &ldquo;Overall Marks CSV&rdquo; includes weighted scores and total scores.
+      </p>
+      <p className='mb-4 text-sm text-gray-600'>
+        The &ldquo;Supervisor/Moderator Marks CSV&rdquo; provides a detailed breakdown of individual supervisor and
+        moderator scores.
+      </p>
       <Suspense fallback={<div>Loading...</div>}>
         <ClientDataTable assessmentComponents={assessmentComponents} data={formattedData} />
       </Suspense>

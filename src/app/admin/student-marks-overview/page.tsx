@@ -3,6 +3,7 @@ import { prisma } from '@/src/lib/prisma'
 import { StudentMark } from './columns'
 import { ClientDataTable } from './ClientDataTable'
 import StudentMarksOverviewPage from './overviewDownload'
+import { downloadSupervisorModeratorMarks } from './overviewDownload2'
 
 async function getCurrentSemesterId() {
   const currentSemester = await prisma.semester.findFirst({
@@ -71,7 +72,7 @@ async function getStudentMarks(currentSemesterId: string) {
   const formattedData: StudentMark[] = studentMarks.map((student) => {
     const grades = {} as Record<
       string,
-      { supervisor: number | null; moderator: number | null; weighted: number | null }
+      { supervisor: number | null; moderator: number | null; weighted: number | null; weightage: number }
     >
 
     assessmentComponents.forEach((component) => {
@@ -88,6 +89,7 @@ async function getStudentMarks(currentSemesterId: string) {
 
       const supervisorScore = supervisorGrade?.score ?? null
       const moderatorScore = moderatorGrade?.score ?? null
+      const weightage = supervisorGrade?.semesterGradeType.weightage ?? 0
 
       let weightedScore = null
       if (supervisorScore !== null && moderatorScore !== null) {
@@ -98,7 +100,8 @@ async function getStudentMarks(currentSemesterId: string) {
       grades[component.name] = {
         supervisor: supervisorScore,
         moderator: moderatorScore,
-        weighted: weightedScore
+        weighted: weightedScore,
+        weightage: weightage
       }
     })
 
@@ -123,8 +126,21 @@ export default async function StudentMarksOverviewPageWrapper() {
   const { formattedData, assessmentComponents } = await getStudentMarks(currentSemesterId)
 
   return (
+<<<<<<< HEAD
     <Suspense fallback={<div>Loading...</div>}>
       <StudentMarksOverviewPage formattedData={formattedData} assessmentComponents={assessmentComponents} />
     </Suspense>
+=======
+    <div className='container mx-auto py-10'>
+      <h1 className='mb-5 text-2xl font-bold'>Student Marks Overview</h1>
+      <Suspense fallback={<div>Loading...</div>}>
+        <StudentMarksOverviewPage
+          formattedData={formattedData}
+          assessmentComponents={assessmentComponents}
+          downloadSupervisorModeratorMarks={downloadSupervisorModeratorMarks}
+        />
+      </Suspense>
+    </div>
+>>>>>>> security
   )
 }

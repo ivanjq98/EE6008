@@ -4,9 +4,12 @@ import Link from 'next/link'
 import { Header } from '@/src/components/header'
 import { TypographyH4 } from '@/src/components/typography'
 import { Badge } from '@/src/components/ui/badge'
+import { Button } from '@/src/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/src/components/ui/card'
 import { authOptions } from '@/src/lib/auth'
-import { getStudentAllocatedProject } from '@/src/server/student'
+import { getStudentAllocatedProject, getAvailableProjects } from '@/src/server/student'
+import { AppealButton } from '@/src/components/student/appeal/AppealButton'
+import { isAppealPeriod } from '@/src/lib/date'
 
 const StudentAllocatedProjectPage = async () => {
   const session = await getServerSession(authOptions)
@@ -15,6 +18,8 @@ const StudentAllocatedProjectPage = async () => {
   if (!user.studentId) return null
 
   const data = await getStudentAllocatedProject(user.studentId)
+  const isInAppealPeriod = await isAppealPeriod()
+  const availableProjects = await getAvailableProjects()
 
   return (
     <section className='space-y-6 py-6'>
@@ -50,6 +55,24 @@ const StudentAllocatedProjectPage = async () => {
                     </li>
                   ))}
                 </ol>
+                {isInAppealPeriod && (
+                  <div className='mt-6'>
+                    <AppealButton
+                      studentId={user.studentId}
+                      currentProjectId={data.id}
+                      availableProjects={availableProjects}
+                    />
+                    <Link href='/student/view-projects'>
+                      <Button
+                        variant='secondary'
+                        style={{ marginTop: '20px' }}
+                        className='mt-2 inline-flex justify-center rounded-md border border-transparent bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2'
+                      >
+                        View All Projects
+                      </Button>
+                    </Link>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>

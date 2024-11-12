@@ -1,7 +1,6 @@
 'use client'
 
 import * as React from 'react'
-
 import { Button } from '@/src/components/ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/src/components/ui/table'
 import {
@@ -20,14 +19,15 @@ import {
 } from '@tanstack/react-table'
 
 import { DataTableToolbar } from './data-table-toolbar'
+import { Project } from './columns' // Import the Project type from columns.tsx
 
-interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[]
-  data: TData[]
+interface DataTableProps {
+  columns: ColumnDef<Project>[]
+  data: Project[]
   semesterOptions: { label: string; value: string }[]
 }
 
-export function DataTable<TData, TValue>({ columns, data, semesterOptions }: DataTableProps<TData, TValue>) {
+export function DataTable({ columns, data, semesterOptions }: DataTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
@@ -65,13 +65,11 @@ export function DataTable<TData, TValue>({ columns, data, semesterOptions }: Dat
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead key={header.id}>
-                      {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                    </TableHead>
-                  )
-                })}
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id}>
+                    {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                  </TableHead>
+                ))}
               </TableRow>
             ))}
           </TableHeader>
