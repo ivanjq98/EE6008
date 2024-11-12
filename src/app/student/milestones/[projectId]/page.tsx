@@ -8,6 +8,7 @@ import { ExtendedMilestone } from './MilestoneList'
 import { Header } from '@/src/components/header'
 import { Card, CardContent } from '@/src/components/ui/card'
 import Link from 'next/link'
+import { Button } from '@/src/components/ui/button'
 
 interface PageProps {
   params: { projectId: string }
@@ -100,7 +101,9 @@ const StudentMilestonePage = async ({ params }: PageProps) => {
     return (
       <div className='container mx-auto p-4'>
         <Header title={project.title} description='Manage your project milestones and track progress' />
-
+        <Link href={`/student/gantt-chart/`}>
+          <Button variant='secondary'>View Gantt Chart</Button>
+        </Link>
         <Card className='mt-6'>
           <CardContent className='p-6'>
             <MilestoneListWrapper

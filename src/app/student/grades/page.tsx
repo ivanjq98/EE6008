@@ -42,36 +42,26 @@ export default async function StudentGradesPage() {
     redirect('/login')
   }
 
-  const student = (await prisma.student.findUnique({
+  const student = await prisma.student.findUnique({
     where: { id: session.user.studentId },
     include: {
       Grade: {
         include: {
           semesterGradeType: true,
-          faculty: {
-            include: {
-              Grade: true,
-              user: true
-            }
-          }
+          faculty: true
         }
       },
       project: {
         include: {
           faculties: {
             include: {
-              faculty: {
-                include: {
-                  Grade: true,
-                  user: true
-                }
-              }
+              faculty: true
             }
           }
         }
       }
     }
-  })) as ExtendedStudent | null
+  })
 
   const semester = await prisma.semester.findFirst({
     where: {
@@ -88,47 +78,88 @@ export default async function StudentGradesPage() {
     }
   })
 
-  const PASS_THRESHOLD = 60 // Adjust this value as needed
+  const PASS_THRESHOLD = 60
 
   const facultyRoleWeightages = await prisma.facultyRoleWeightage.findMany()
   const weightageObj = facultyRoleWeightages.reduce(
     (acc, curr) => {
-      acc[curr.role] = curr.weightage / 100 // Convert to decimal
+      acc[curr.role] = curr.weightage / 100
       return acc
     },
     {} as Record<string, number>
   )
 
-  let totalScore = 0
-  let totalWeightage = 0
+  const gradesArray =
+    student?.Grade.reduce(
+      (acc, grade) => {
+        const existingGrade = acc.find((g) => g.semesterGradeTypeId === grade.semesterGradeType.name)
 
-  student?.Grade.forEach((grade) => {
-    const supervisorScore =
-      student.project?.faculties
-        .find((pf) => pf.faculty.id === grade.faculty.id && pf.role === 'SUPERVISOR')
-        ?.faculty.Grade.find((g) => g.studentId === student.id)?.score ?? 0
+        if (existingGrade) {
+          if (student.project?.faculties.some((pf) => pf.faculty.id === grade.faculty.id && pf.role === 'SUPERVISOR')) {
+            existingGrade.supervisorScore = grade.score
+          } else if (
+            student.project?.faculties.some((pf) => pf.faculty.id === grade.faculty.id && pf.role === 'MODERATOR')
+          ) {
+            existingGrade.moderatorScore = grade.score
+          }
 
-    const moderatorScore =
-      student.project?.faculties
-        .find((pf) => pf.faculty.id === grade.faculty.id && pf.role === 'MODERATOR')
-        ?.faculty.Grade.find((g) => g.studentId === student.id)?.score ?? 0
+          if (existingGrade.supervisorScore !== null && existingGrade.moderatorScore !== null) {
+            const weightedScore =
+              existingGrade.supervisorScore * (weightageObj['SUPERVISOR'] || 0.7) +
+              existingGrade.moderatorScore * (weightageObj['MODERATOR'] || 0.3)
 
-    const weightedScore =
-      supervisorScore * (weightageObj['SUPERVISOR'] || 0.7) + moderatorScore * (weightageObj['MODERATOR'] || 0.3)
+            existingGrade.combinedScore = weightedScore
+            // Calculate percentage score based on weightage
+            const percentageScore = (weightedScore / grade.semesterGradeType.weightage) * 100
+            existingGrade.status = percentageScore >= PASS_THRESHOLD ? 'Pass' : 'Fail'
+          }
+        } else {
+          acc.push({
+            id: grade.id,
+            semesterGradeTypeId: grade.semesterGradeType.name,
+            weightage: grade.semesterGradeType.weightage,
+            supervisorScore: student.project?.faculties.some(
+              (pf) => pf.faculty.id === grade.faculty.id && pf.role === 'SUPERVISOR'
+            )
+              ? grade.score
+              : null,
+            moderatorScore: student.project?.faculties.some(
+              (pf) => pf.faculty.id === grade.faculty.id && pf.role === 'MODERATOR'
+            )
+              ? grade.score
+              : null,
+            combinedScore: null,
+            status: 'Pending'
+          })
+        }
 
-    totalScore += weightedScore * (grade.semesterGradeType.weightage / 100)
-    totalWeightage += grade.semesterGradeType.weightage
-  })
+        return acc
+      },
+      [] as Array<{
+        id: string
+        semesterGradeTypeId: string
+        weightage: number
+        supervisorScore: number | null
+        moderatorScore: number | null
+        combinedScore: number | null
+        status: 'Pass' | 'Fail' | 'Pending'
+      }>
+    ) || []
 
-  const finalPercentage = (totalScore / totalWeightage) * 100
-  const finalStatus = finalPercentage >= PASS_THRESHOLD ? 'Pass' : 'Fail'
+  // Calculate total score
+  const totalScore = gradesArray.reduce((sum, grade) => {
+    if (grade.combinedScore === null) return sum
+    return sum + grade.combinedScore
+  }, 0)
+
+  const finalStatus = totalScore >= PASS_THRESHOLD ? 'Pass' : 'Fail'
 
   const currentDate = new Date()
   const resultReleaseDate = semester?.timeline?.studentResultRelease
 
   return (
     <div className='container mx-auto py-10'>
-      <h1 className='mb-5 text-2xl font-bold'>Your Project Grade</h1>
+      <h1 className='mb-5 text-2xl font-bold'>Your Project Status</h1>
 
       {!semester || !resultReleaseDate ? (
         <Alert className='mb-6'>
@@ -142,7 +173,7 @@ export default async function StudentGradesPage() {
           <AlertTitle>Results Not Yet Released</AlertTitle>
           <AlertDescription>
             The final results will be released on {format(resultReleaseDate, 'PPP')} at{' '}
-            {format(resultReleaseDate, 'HH:mm:ss')}. Please check back after this date and time to view your grade.
+            {format(resultReleaseDate, 'HH:mm:ss')}. Please check back after this date and time to view your status.
           </AlertDescription>
         </Alert>
       ) : (
@@ -151,33 +182,95 @@ export default async function StudentGradesPage() {
             <InfoIcon className='h-4 w-4' />
             <AlertTitle>Results Released</AlertTitle>
             <AlertDescription>
-              The final results have been released. You can now view your grade below.
+              The final results have been released. You can now view your status below.
             </AlertDescription>
           </Alert>
 
-          <Card className='mb-6'>
-            <CardHeader>
-              <CardTitle>{semester.name}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Project</TableHead>
-                    <TableHead>Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  <TableRow>
-                    <TableCell>{student?.project?.title || 'No project assigned'}</TableCell>
-                    <TableCell>{finalStatus}</TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
+          {gradesArray.length === 0 ? (
+            <Card>
+              <CardContent className='pt-6'>
+                <p>No status information is available at this time.</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card className='mb-6'>
+              <CardHeader>
+                <CardTitle>{semester.name}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Module</TableHead>
+                      <TableHead>Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    <TableRow>
+                      <TableCell>{student?.project?.title || 'No project assigned'}</TableCell>
+                      <TableCell className={finalStatus === 'Pass' ? 'text-green-600' : 'text-red-600'}>
+                        {finalStatus}
+                      </TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          )}
         </>
       )}
     </div>
   )
 }
+
+// <Alert className='mb-6'>
+// <InfoIcon className='h-4 w-4' />
+// <AlertTitle>Results Released</AlertTitle>
+// <AlertDescription>
+//   The final results have been released. You can now view your grades below.
+// </AlertDescription>
+// </Alert>
+
+// {gradesArray.length === 0 ? (
+// <Card>
+//   <CardContent className='pt-6'>
+//     <p>No grade information is available at this time.</p>
+//   </CardContent>
+// </Card>
+// ) : (
+// <>
+//   <Card className='mb-6'>
+//     <CardHeader>
+//       <CardTitle>{semester.name}</CardTitle>
+//     </CardHeader>
+//     <CardContent>
+//       <Table>
+//         <TableHeader>
+//           <TableRow>
+//             <TableHead>Assessment Component</TableHead>
+//             <TableHead>Weightage</TableHead>
+//             <TableHead>Score</TableHead>
+//             <TableHead>Status</TableHead>
+//           </TableRow>
+//         </TableHeader>
+//         <TableBody>
+//           {gradesArray.map((grade) => (
+//             <TableRow key={grade.id}>
+//               <TableCell>{grade.semesterGradeTypeId}</TableCell>
+//               <TableCell>{grade.weightage}%</TableCell>
+//               <TableCell>
+//                 {grade.combinedScore !== null ? grade.combinedScore.toFixed(1) : 'Pending'}
+//               </TableCell>
+//               <TableCell
+//                 className={
+//                   grade.status === 'Pass'
+//                     ? 'text-green-600'
+//                     : grade.status === 'Fail'
+//                     ? 'text-red-600'
+//                     : ''
+//                 }
+//               >
+//                 {grade.status}
+//               </TableCell>
+//             </TableRow>
+//           ))
