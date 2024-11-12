@@ -75,7 +75,7 @@ async function getStudentMarks(
           semesterGradeType: {
             semesterId: currentSemesterId
           },
-          facultyId: facultyId
+          facultyId: facultyId // Restrict grades to only the logged-in faculty member
         }
       }
     }

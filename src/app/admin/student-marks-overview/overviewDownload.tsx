@@ -56,14 +56,9 @@ export default function StudentMarksOverviewPage({
         'Student Name',
         'Project Title',
         'Semester',
-<<<<<<< HEAD
-        ...assessmentComponents.flatMap((component) => [`${component} (Weighted)`, `${component} (Discrepancy)`]),
-        'Total Score'
-=======
         ...assessmentComponents,
         'Total Score',
         'Max Discrepancy (%)'
->>>>>>> security
       ]
       const csvContent = [
         headers.join(','),
