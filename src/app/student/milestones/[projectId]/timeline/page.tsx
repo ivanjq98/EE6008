@@ -2,7 +2,7 @@ import { notFound, redirect } from 'next/navigation'
 import { getServerSession } from 'next-auth'
 import { prisma } from '@/src/lib/prisma'
 import { authOptions } from '@/src/lib/auth'
-import { GanttChart } from './GanttChart'
+import { GanttChart } from '@/src/components/student/timeline/GanttChart'
 
 interface PageProps {
   params: { projectId: string }

@@ -1,7 +1,7 @@
 import { getServerSession } from 'next-auth'
 import { redirect } from 'next/navigation'
 import { Header } from '@/src/components/header'
-import { AssignModeratorsTable } from '@/src/app/faculty/project-moderator/project-moderators-table'
+import { AssignModeratorsTable } from '@/src/components/faculty/project-moderator/project-moderators-table'
 import { authOptions } from '@/src/lib/auth'
 import { prisma } from '@/src/lib/prisma'
 import { Alert, AlertDescription, AlertTitle } from '@/src/components/ui/alert'

@@ -2,7 +2,7 @@ import { getServerSession } from 'next-auth'
 import { redirect } from 'next/navigation'
 import { authOptions } from '@/src/lib/auth'
 import { prisma } from '@/src/lib/prisma'
-import { FacultyRemarkForm } from './FacultyRemarkForm'
+import { FacultyRemarkForm } from '@/src/components/faculty/milestones/FacultyRemarkForm'
 import Link from 'next/link'
 import { formatInTimeZone } from 'date-fns-tz'
 

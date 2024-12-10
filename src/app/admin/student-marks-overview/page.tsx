@@ -1,9 +1,9 @@
 import { Suspense } from 'react'
 import { prisma } from '@/src/lib/prisma'
-import { StudentMark } from './columns'
-import { ClientDataTable } from './ClientDataTable'
-import StudentMarksOverviewPage from './overviewDownload'
-import { downloadSupervisorModeratorMarks } from './overviewDownload2'
+import { StudentMark } from '@/src/components/admin/student-marks-overview/columns'
+import { ClientDataTable } from '@/src/components/admin/student-marks-overview/ClientDataTable'
+import StudentMarksOverviewPage from '@/src/components/admin/student-marks-overview/overviewDownload'
+import { downloadSupervisorModeratorMarks } from '@/src/components/admin/student-marks-overview/overviewDownload2'
 import { Header } from '@/src/components/header'
 
 async function getCurrentSemesterId() {

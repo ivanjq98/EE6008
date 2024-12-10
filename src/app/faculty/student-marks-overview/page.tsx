@@ -1,11 +1,11 @@
 import { Suspense } from 'react'
 import { prisma } from '@/src/lib/prisma'
-import { StudentMark } from './columns'
-import { ClientDataTable } from './ClientDataTable'
+import { StudentMark } from '@/src/components/faculty/student-marks-overview/columns'
+import { ClientDataTable } from '@/src/components/faculty/student-marks-overview/ClientDataTable'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/src/lib/auth'
 import { redirect } from 'next/navigation'
-import { FacultyRole } from './columns'
+import { FacultyRole } from '@/src/components/faculty/student-marks-overview/columns'
 
 async function getCurrentSemesterId() {
   const currentSemester = await prisma.semester.findFirst({
